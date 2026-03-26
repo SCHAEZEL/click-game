@@ -3,235 +3,1233 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>迷宫猎手 - Dungeon Clicker</title>
-  <link rel="stylesheet" href="style.css">
+  <title>迷宫猎手</title>
+  <style>
+    /* ============================================================
+       迷宫猎手 - 暖黄卡通风格
+       配色：深棕背景 #1a1008 / #2d1f0f，暖橙强调 #f97c4a
+       ============================================================ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #1a1008; color: #f5e6c8; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── 顶部栏 ── */
+    #header { background: #2d1f0f; border-bottom: 2px solid #5a3f20; padding: 8px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .stage-badge { background: #5a3f20; padding: 4px 12px; border-radius: 12px; font-size: 13px; }
+    .stage-badge span { color: #f97c4a; font-weight: 700; }
+    .progress-bar { flex: 1; height: 18px; background: #3d2a14; border-radius: 9px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #c55a2a, #f97c4a); border-radius: 9px; transition: width 0.3s; }
+    .header-info { font-size: 12px; color: #a89070; white-space: nowrap; }
+    .header-info span { color: #f97c4a; }
+    #wb-timer { font-size: 12px; color: #c084fc; cursor: pointer; white-space: nowrap; }
+    #btn-save { background: #3d2a14; border: 1px solid #5a3f20; color: #f5e6c8; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+    /* ── 主游戏区 ── */
+    #main { flex: 1; display: flex; overflow: hidden; }
+
+    /* ── 左侧角色面板 ── */
+    #char-panel { width: 160px; background: #2d1f0f; border-right: 2px solid #5a3f20; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; gap: 6px; flex-shrink: 0; }
+    #char-icon { font-size: 52px; cursor: pointer; transition: transform 0.2s; }
+    #char-icon:hover { transform: scale(1.1); }
+    .char-name { font-size: 11px; color: #a89070; text-align: center; }
+    .char-stats { font-size: 12px; width: 100%; }
+    .char-stat { display: flex; justify-content: space-between; padding: 2px 4px; }
+    .char-stat .label { color: #a89070; }
+    .char-stat .val { color: #f97c4a; font-weight: 600; }
+    .char-stats-divider { border-top: 1px solid #5a3f20; margin: 4px 0; }
+    #active-set { font-size: 10px; color: #a855f7; text-align: center; min-height: 14px; }
+
+    /* ── 中间游戏区 ── */
+    #game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; cursor: pointer; position: relative; }
+    #map-path { display: flex; align-items: center; gap: 0; margin-bottom: 8px; }
+    .map-node { width: 12px; height: 12px; background: #3d2a14; border: 1px solid #5a3f20; border-radius: 50%; transition: all 0.3s; }
+    .map-node.visited { background: #5a3f20; border-color: #f97c4a; }
+    .map-node.active { background: #f97c4a; border-color: #ffd700; box-shadow: 0 0 6px #f97c4a; }
+    .map-node.boss-node { width: 16px; height: 16px; background: #5a2020; border: 2px solid #ef4444; }
+    .map-node.boss-node.visited { background: #ef4444; }
+    .map-line { width: 14px; height: 2px; background: #5a3f20; }
+    #monster-zone { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 28px; background: #3d2a14; border-radius: 16px; border: 2px solid #5a3f20; min-width: 280px; position: relative; }
+    #monster-sprite { font-size: 72px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.1s; user-select: none; }
+    #monster-sprite.hit { animation: shake 0.15s; }
+    #monster-sprite.pulse { animation: pulse 1s infinite; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px) scale(0.9)} 75%{transform:translateX(8px) scale(0.9)} }
+    @keyframes pulse { 0%,100%{filter:drop-shadow(0 0 8px #a855f7)} 50%{filter:drop-shadow(0 0 20px #a855f7)} }
+    #monster-name { font-weight: 700; font-size: 16px; }
+    #monster-type-badge { font-size: 10px; padding: 2px 8px; border-radius: 8px; margin-top: -4px; }
+    .hp-bar-wrap { width: 180px; height: 12px; background: #1a0a0a; border-radius: 6px; border: 1px solid #5a2020; overflow: hidden; }
+    .hp-bar { height: 100%; background: linear-gradient(90deg, #ef4444, #ff6b6b); border-radius: 6px; transition: width 0.2s; }
+    #hp-text { font-size: 12px; color: #a89070; }
+    #click-hint { font-size: 13px; color: #a89070; animation: pulse2 2s infinite; }
+    @keyframes pulse2 { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+    /* ── 右侧属性面板 ── */
+    #stats-panel { width: 230px; background: #2d1f0f; border-left: 2px solid #5a3f20; padding: 12px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex-shrink: 0; }
+    .panel-title { color: #f97c4a; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .stat-row { display: flex; justify-content: space-between; font-size: 12px; }
+    .stat-row .sl { color: #a89070; }
+    .stat-row .sv { color: #f5e6c8; }
+    .stat-divider { border-top: 1px solid #5a3f20; margin: 4px 0; }
+    #inv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .inv-slot { width: 36px; height: 36px; background: #3d2a14; border: 1px solid #5a3f20; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.2s, transform 0.2s; position: relative; overflow: hidden; }
+    .inv-slot:hover { border-color: #f97c4a; transform: scale(1.05); }
+    .inv-slot .inv-quality-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+    .inv-slot .inv-name { font-size: 8px; color: #f5e6c8; text-align: center; line-height: 1; margin-top: 1px; overflow: hidden; white-space: nowrap; }
+    .inv-slot .inv-icon { font-size: 14px; }
+    #inv-header { display: flex; justify-content: space-between; font-size: 11px; color: #a89070; margin-top: 4px; }
+    .btn-sm { padding: 5px 10px; background: #3d2a14; border: 1px solid #5a3f20; color: #f5e6c8; border-radius: 6px; cursor: pointer; font-size: 11px; transition: background 0.2s; }
+    .btn-sm:hover { background: #5a3f20; }
+    .btn-row { display: flex; gap: 6px; margin-top: 4px; }
+
+    /* ── 底部装备栏 ── */
+    #equip-bar { height: 86px; background: #2d1f0f; border-top: 2px solid #5a3f20; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; padding: 0 8px; }
+    .equip-slot { width: 68px; height: 68px; background: #3d2a14; border: 2px solid #5a3f20; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; transition: border-color 0.2s, transform 0.2s; position: relative; overflow: hidden; }
+    .equip-slot:hover { border-color: #f97c4a; transform: scale(1.05); }
+    .equip-slot .slot-icon { font-size: 24px; }
+    .equip-slot .slot-name { font-size: 8px; color: #a89070; }
+    .equip-slot .slot-quality-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+
+    /* ── 伤害飘字 ── */
+    #dmg-layer { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+    .dmg-num { position: absolute; font-weight: 900; font-size: 22px; color: #ff4444; text-shadow: 0 2px 4px rgba(0,0,0,0.8); animation: floatUp 0.8s ease forwards; }
+    .dmg-num.crit { color: #ffd700; font-size: 28px; }
+    .dmg-num.wb { color: #c084fc; font-size: 26px; }
+    @keyframes floatUp { 0%{transform:translateY(0);opacity:1} 100%{transform:translateY(-70px);opacity:0} }
+
+    /* ── Toast 提示 ── */
+    .toast { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); background: rgba(45,31,15,0.95); border: 1px solid #5a3f20; padding: 8px 20px; border-radius: 20px; font-size: 13px; z-index: 900; transition: opacity 0.3s; }
+
+    /* ── 弹窗 ── */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal.show { display: flex; }
+    .modal-content { background: #2d1f0f; border: 2px solid #5a3f20; border-radius: 16px; padding: 24px; min-width: 340px; max-width: 480px; max-height: 80vh; overflow-y: auto; position: relative; animation: modalIn 0.25s ease; }
+    @keyframes modalIn { 0%{transform:scale(0.85);opacity:0} 100%{transform:scale(1);opacity:1} }
+    .modal-close { position: absolute; top: 10px; right: 14px; background: none; border: none; color: #a89070; font-size: 20px; cursor: pointer; }
+    .modal-close:hover { color: #f5e6c8; }
+    .modal-title { color: #f97c4a; font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+
+    /* 装备详情弹窗 */
+    .equip-modal-header { text-align: center; margin-bottom: 12px; }
+    .equip-modal-name { font-size: 20px; font-weight: 700; }
+    .equip-modal-meta { font-size: 12px; color: #a89070; margin-top: 4px; }
+    .equip-modal-stats { margin: 12px 0; }
+    .equip-stat-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px solid #3d2a14; }
+    .equip-stat-row .k { color: #a89070; }
+    .equip-stat-row .v { color: #4ade80; font-weight: 600; }
+    .equip-set-tag { background: #3d2a14; border: 1px solid #a855f7; border-radius: 8px; padding: 6px 12px; font-size: 12px; color: #a855f7; text-align: center; margin: 8px 0; }
+    .equip-modal-actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+    .btn-primary { background: #f97c4a; border: none; color: #fff; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .btn-primary:hover { background: #c55a2a; }
+    .btn-secondary { background: #3d2a14; border: 1px solid #5a3f20; color: #f5e6c8; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .btn-secondary:hover { background: #5a3f20; }
+
+    /* 换肤弹窗 */
+    .skin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+    .skin-card { background: #3d2a14; border: 2px solid #5a3f20; border-radius: 10px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s; }
+    .skin-card:hover { border-color: #f97c4a; }
+    .skin-card.active { border-color: #f97c4a; background: #5a3f20; }
+    .skin-card.locked { opacity: 0.5; cursor: not-allowed; }
+    .skin-card .skin-emoji { font-size: 28px; }
+    .skin-card .skin-name { font-size: 10px; color: #a89070; }
+    .skin-card .skin-lock { font-size: 12px; }
+    .skin-section { margin-bottom: 16px; }
+    .skin-section-title { font-size: 12px; color: #a89070; margin-bottom: 8px; }
+
+    /* 怪物图鉴弹窗 */
+    .guide-list { display: flex; flex-direction: column; gap: 10px; }
+    .guide-item { background: #3d2a14; border-radius: 10px; padding: 10px 14px; border-left: 4px solid; }
+    .guide-item .gi-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .guide-item .gi-desc { font-size: 12px; color: #a89070; }
+
+    /* 掉落动画 */
+    .drop-anim { position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(45,31,15,0.95); border: 2px solid; border-radius: 12px; padding: 12px 24px; text-align: center; z-index: 1100; animation: dropPop 0.3s ease, dropFade 0.3s ease 1.7s forwards; pointer-events: none; }
+    @keyframes dropPop { 0%{transform:translateX(-50%) scale(0.5)} 100%{transform:translateX(-50%) scale(1)} }
+    @keyframes dropFade { 0%{opacity:1} 100%{opacity:0} }
+    .drop-anim .da-name { font-size: 16px; font-weight: 700; }
+    .drop-anim .da-quality { font-size: 12px; }
+    .drop-anim .da-slot { font-size: 11px; color: #a89070; }
+
+    /* 套装激活动画 */
+    .set-anim { position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(90,30,120,0.95); border: 2px solid #a855f7; border-radius: 12px; padding: 16px 32px; text-align: center; z-index: 1100; animation: setPop 0.3s ease, setFade 0.5s ease 2.5s forwards; pointer-events: none; }
+    @keyframes setPop { 0%{transform:translateX(-50%) scale(0.5)} 100%{transform:translateX(-50%) scale(1)} }
+    @keyframes setFade { 0%{opacity:1} 100%{opacity:0} }
+    .set-anim .sa-title { color: #a855f7; font-size: 12px; }
+    .set-anim .sa-name { color: #f5e6c8; font-size: 18px; font-weight: 700; }
+    .set-anim .sa-stats { color: #4ade80; font-size: 12px; margin-top: 4px; }
+
+    /* 世界BOSS面板 */
+    #wb-panel { position: fixed; top: 60px; right: 10px; background: rgba(45,31,15,0.95); border: 2px solid #a855f7; border-radius: 12px; padding: 12px 16px; z-index: 800; display: none; min-width: 200px; }
+    #wb-panel.show { display: block; }
+    .wb-title { color: #a855f7; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .wb-item { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+    .wb-item .wb-name { color: #f5e6c8; }
+    .wb-item .wb-hp { color: #ef4444; }
+  </style>
 </head>
 <body>
 
-<!-- 顶部关卡进度条 -->
-<header id="stage-header">
-  <div class="stage-info">
-    <span id="stage-name">第 1 关</span>
-    <span id="stage-progress-text">怪物: 0/20</span>
-  </div>
-  <div class="progress-bar-wrap">
-    <div id="stage-progress-bar" class="progress-bar"></div>
-  </div>
-  <div class="boss-timer" id="world-boss-timer">
-    🌍 世界BOSS: <span id="wb-countdown">--:--:--</span> | 剩余 <span id="wb-remaining">5</span> 次
-  </div>
-</header>
+<!-- ══════════════════════════════════════════════════
+     顶部栏
+     ══════════════════════════════════════════════════ -->
+<div id="header">
+  <div class="stage-badge">第 <span id="stage-num">1</span> 关</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <div class="header-info">怪物: <span id="kill-count">0</span>/20</div>
+  <div id="wb-timer" onclick="toggleWbPanel()">世界BOSS: --:--:--</div>
+  <button id="btn-save" onclick="doSave()">💾 存档</button>
+</div>
 
-<!-- 主游戏区域 -->
-<main id="game-main">
-  <!-- 左侧：角色展示 -->
-  <aside id="char-panel">
-    <div id="char-display">
-      <div id="char-icon" class="char-icon">🐕</div>
-      <div id="char-job" class="char-label">剑士</div>
-      <div id="char-animal" class="char-label">狗</div>
-    </div>
-    <button id="btn-skin" class="btn-secondary">🎨 换肤</button>
-    <div class="char-stats-mini">
-      <div>攻击: <span id="char-atk">10</span></div>
-      <div>暴击: <span id="char-crit">5</span>%</div>
-      <div>套装: <span id="char-set">—</span></div>
-    </div>
-  </aside>
+<!-- 世界BOSS详情面板 -->
+<div id="wb-panel">
+  <div class="wb-title">🐉 世界BOSS</div>
+  <div id="wb-list"></div>
+  <div style="font-size:11px;color:#a89070;margin-top:8px">点击世界BOSS图标进入战斗</div>
+</div>
 
-  <!-- 中间：游戏主战场 -->
-  <section id="game-area">
-    <!-- 地图节点 -->
-    <div id="map-container">
-      <div id="map-path">
-        <div id="player-node" class="node player">🐕</div>
-        <!-- 怪物节点动态生成 -->
-      </div>
-      <div id="map-nodes" class="map-nodes"></div>
-    </div>
+<!-- ══════════════════════════════════════════════════
+     主游戏区
+     ══════════════════════════════════════════════════ -->
+<div id="main">
 
-    <!-- 怪物展示 -->
+  <!-- 左侧角色面板 -->
+  <div id="char-panel">
+    <div id="char-icon" onclick="showSkinModal()">🐕⚔️</div>
+    <div class="char-name" id="char-label">狗 · 剑士</div>
+    <div class="char-stats-divider"></div>
+    <div class="char-stats">
+      <div class="char-stat"><span class="label">攻击</span><span class="val" id="stat-atk">10</span></div>
+      <div class="char-stat"><span class="label">暴击</span><span class="val" id="stat-crit">5%</span></div>
+      <div class="char-stat"><span class="label">防御</span><span class="val" id="stat-def">0</span></div>
+      <div class="char-stat"><span class="label">生命</span><span class="val" id="stat-hp">100</span></div>
+    </div>
+    <div class="char-stats-divider"></div>
+    <div id="active-set"></div>
+    <div class="char-stats-divider"></div>
+    <div style="font-size:10px;color:#a89070;text-align:center">点击头像换肤</div>
+  </div>
+
+  <!-- 中间游戏区 -->
+  <div id="game-area" onclick="handleClick(event)">
+    <!-- 地图路径 -->
+    <div id="map-path"></div>
+
+    <!-- 怪物区域 -->
     <div id="monster-zone">
-      <div id="monster-sprite" class="monster-sprite normal">🐀</div>
-      <div id="monster-info">
-        <div id="monster-name">小怪·Lv.1</div>
-        <div class="hp-bar-wrap">
-          <div id="monster-hp-bar" class="hp-bar"></div>
+      <div id="monster-sprite">🐀</div>
+      <div id="monster-name">哥布林 · Lv.1</div>
+      <div id="monster-type-badge" style="background:#3d2a14;color:#9ca3af">普通</div>
+      <div class="hp-bar-wrap"><div class="hp-bar" id="hp-bar" style="width:100%"></div></div>
+      <div id="hp-text">50 / 50</div>
+    </div>
+
+    <div id="click-hint">点击攻击 · 空格键/点击均有效</div>
+  </div>
+
+  <!-- 右侧统计面板 -->
+  <div id="stats-panel">
+    <div class="panel-title">📊 战斗统计</div>
+    <div class="stat-row"><span class="sl">点击次数</span><span class="sv" id="s-clicks">0</span></div>
+    <div class="stat-row"><span class="sl">攻击伤害</span><span class="sv" id="s-damage">0</span></div>
+    <div class="stat-row"><span class="sl">击杀小怪</span><span class="sv" id="s-kills">0</span></div>
+    <div class="stat-row"><span class="sl">通关次数</span><span class="sv" id="s-clears">0</span></div>
+    <div class="stat-divider"></div>
+    <div class="panel-title">🎒 背包</div>
+    <div id="inv-header"><span>已收集</span><span id="inv-count">0/100</span></div>
+    <div id="inv-grid"></div>
+    <div class="btn-row">
+      <button class="btn-sm" onclick="showBestiary()">📖 图鉴</button>
+      <button class="btn-sm" onclick="showSkinModal()">🎨 换肤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     底部装备栏（9个部位：武器/头盔/胸甲/护腿/手套/戒指×2/耳环×2）
+     ══════════════════════════════════════════════════ -->
+<div id="equip-bar">
+  <div class="equip-slot" data-slot="weapon" onclick="clickEquipSlot('weapon')"><div class="slot-icon">⚔️</div><div class="slot-name">武器</div></div>
+  <div class="equip-slot" data-slot="helmet" onclick="clickEquipSlot('helmet')"><div class="slot-icon">🪖</div><div class="slot-name">头盔</div></div>
+  <div class="equip-slot" data-slot="chest" onclick="clickEquipSlot('chest')"><div class="slot-icon">🦺</div><div class="slot-name">胸甲</div></div>
+  <div class="equip-slot" data-slot="legs" onclick="clickEquipSlot('legs')"><div class="slot-icon">👖</div><div class="slot-name">护腿</div></div>
+  <div class="equip-slot" data-slot="gloves" onclick="clickEquipSlot('gloves')"><div class="slot-icon">🧤</div><div class="slot-name">手套</div></div>
+  <div class="equip-slot" data-slot="ring1" onclick="clickEquipSlot('ring1')"><div class="slot-icon">💍</div><div class="slot-name">戒指</div></div>
+  <div class="equip-slot" data-slot="ring2" onclick="clickEquipSlot('ring2')"><div class="slot-icon">💍</div><div class="slot-name">戒指</div></div>
+  <div class="equip-slot" data-slot="earring1" onclick="clickEquipSlot('earring1')"><div class="slot-icon">📿</div><div class="slot-name">耳环</div></div>
+  <div class="equip-slot" data-slot="earring2" onclick="clickEquipSlot('earring2')"><div class="slot-icon">📿</div><div class="slot-name">耳环</div></div>
+</div>
+
+<!-- 伤害数字层 -->
+<div id="dmg-layer"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   迷宫猎手 - 完整游戏版本
+   单文件 HTML，所有 JS/CSS 内联
+   参考 modules/ 下各模块实现
+   ═══════════════════════════════════════════════════════════ */
+
+// ─────────────────────────────────────────────────────
+// 1. 常量配置
+// ─────────────────────────────────────────────────────
+const QUALITY_COLORS = { green:'#4ade80',blue:'#60a5fa',purple:'#a855f7',orange:'#f97316',red:'#ef4444' };
+const QUALITY_NAMES  = { green:'优秀',blue:'精良',purple:'史诗',orange:'传说',red:'神话' };
+const DROP_RATES     = [0.60, 0.25, 0.13, 0.015, 0.005];
+const QUALITY_KEYS   = ['green','blue','purple','orange','red'];
+
+const EQUIP_SLOTS = ['weapon','helmet','chest','legs','gloves','ring1','ring2','earring1','earring2'];
+const SLOT_NAMES  = { weapon:'武器',helmet:'头盔',chest:'胸甲',legs:'护腿',gloves:'手套',ring1:'戒指',ring2:'戒指',earring1:'耳环',earring2:'耳环' };
+const SLOT_ICONS  = { weapon:'⚔️',helmet:'🪖',chest:'🦺',legs:'👖',gloves:'🧤',ring1:'💍',ring2:'💍',earring1:'📿',earring2:'📿' };
+
+const ANIMALS     = ['dog','cat','rabbit','bird'];
+const ANIMAL_EMOJI = { dog:'🐕',cat:'🐱',rabbit:'🐰',bird:'🐦' };
+const ANIMAL_CN   = { dog:'狗',cat:'猫',rabbit:'兔子',bird:'鸟' };
+const PROFESSIONS = ['warrior','archer','mage','rogue'];
+const PROF_EMOJI  = { warrior:'⚔️',archer:'🏹',mage:'🔮',rogue:'🗡️' };
+const PROF_CN     = { warrior:'剑士',archer:'弓手',mage:'法师',rogue:'盗贼' };
+
+/* 套装系统：每职业3套，凑齐4件触发光环
+   套装由怪物掉落时随机赋予（20%概率） */
+const SET_BONUSES = {
+  warrior: {
+    berserker: { name:'狂暴光环', stats:{ atk:50 },   count:4 },
+    guardian:  { name:'守护光环', stats:{ def:30 },   count:4 },
+    destroyer: { name:'毁灭光环', stats:{ crit:20 },  count:4 }
+  },
+  archer: {
+    windshot: { name:'疾风光环', stats:{ atk:40,spd:10 }, count:4 },
+    forest:   { name:'森林光环', stats:{ def:25 },        count:4 },
+    eagle:    { name:'苍鹰光环', stats:{ crit:25 },        count:4 }
+  },
+  mage: {
+    arcane:   { name:'奥术光环', stats:{ atk:60 },        count:4 },
+    ice:      { name:'冰霜光环', stats:{ def:20,spd:15 }, count:4 },
+    inferno:  { name:'烈焰光环', stats:{ crit:30 },        count:4 }
+  },
+  rogue: {
+    shadow:   { name:'暗影光环', stats:{ atk:45,spd:15 }, count:4 },
+    phantom:  { name:'幻影光环', stats:{ def:15,crit:20 }, count:4 },
+    death:    { name:'死神光环', stats:{ crit:35 },        count:4 }
+  }
+};
+
+/* 职业对应英文名（用于套装属性查找） */
+const PROF_EN = { warrior:'warrior',archer:'archer',mage:'mage',rogue:'rogue' };
+
+// ─────────────────────────────────────────────────────
+// 2. 游戏状态
+// ─────────────────────────────────────────────────────
+let G = null; // 游戏全局状态
+
+function initState() {
+  return {
+    // 玩家基础属性
+    player: {
+      name: '冒险者',
+      animal: 'dog',        // 动物形象
+      profession: 'warrior', // 职业
+      level: 1,
+      exp: 0,
+      hp: 100, maxHp: 100,
+      atk: 10, def: 5, crit: 5, spd: 1
+    },
+    // 已解锁形象
+    unlockedAnimals:     ['dog'],
+    unlockedProfessions: ['warrior'],
+    // 进度
+    currentStage: 1,
+    mapSteps: 0,           // 地图步进（0-20）
+    monstersKilled: 0,      // 总击杀
+    stageMonstersKilled: 0, // 本关击杀
+    stageCompleted: 0,
+    totalClicks: 0,
+    totalDamage: 0,
+    // 背包
+    inventory: [],
+    maxInventorySize: 100,
+    // 装备（已穿戴）
+    equipped: {
+      weapon:null, helmet:null, chest:null, legs:null, gloves:null,
+      ring1:null, ring2:null, earring1:null, earring2:null
+    },
+    // 形象碎片（集齐10个解锁形象）
+    fragments: {},
+    // 世界BOSS
+    worldBosses: [],       // 当前存活的 worldBoss 对象
+    // 已激活的套装
+    setBonusActivated: {},
+    lastSave: Date.now()
+  };
+}
+
+// ─────────────────────────────────────────────────────
+// 3. 存档系统（localStorage）
+// ─────────────────────────────────────────────────────
+const SAVE_KEY = 'maze_hunter_save_v1';
+
+function saveGame() {
+  if (!G) return;
+  G.lastSave = Date.now();
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(G));
+    showToast('💾 存档成功', '#4ade80');
+  } catch(e) {
+    showToast('❌ 存档失败', '#ef4444');
+  }
+}
+
+function loadGame() {
+  try {
+    const data = localStorage.getItem(SAVE_KEY);
+    if (!data) return null;
+    const loaded = JSON.parse(data);
+    // 合并，防止新版本字段丢失
+    G = { ...initState(), ...loaded };
+    // 确保 equipped 字段完整
+    for (const s of EQUIP_SLOTS) {
+      if (G.equipped[s] === undefined) G.equipped[s] = null;
+    }
+    return G;
+  } catch(e) {
+    return null;
+  }
+}
+
+function deleteSave() { localStorage.removeItem(SAVE_KEY); }
+
+// ─────────────────────────────────────────────────────
+// 4. 品质抽取
+//   绿60% / 蓝25% / 紫13% / 橙1.5% / 红0.5%
+// ─────────────────────────────────────────────────────
+function rollQuality(level = 1) {
+  const levelBonus = (level - 1) * 0.01;
+  let r = Math.random();
+  const rates = [
+    { key:'green',  rate: DROP_RATES[0] },
+    { key:'blue',   rate: DROP_RATES[1] },
+    { key:'purple', rate: DROP_RATES[2] + levelBonus },
+    { key:'orange', rate: DROP_RATES[3] + levelBonus * 0.5 },
+    { key:'red',    rate: DROP_RATES[4] }
+  ];
+  for (const { key, rate } of rates) {
+    if (r < rate) return key;
+    r -= rate;
+  }
+  return 'green';
+}
+
+// ─────────────────────────────────────────────────────
+// 5. 装备生成
+// ─────────────────────────────────────────────────────
+const QUALITY_MULT = { green:1, blue:1.3, purple:1.8, orange:2.5, red:3.5 };
+
+function generateEquipment(quality, monsterLevel = 1) {
+  const slot = EQUIP_SLOTS[Math.floor(Math.random() * EQUIP_SLOTS.length)];
+  const mult = QUALITY_MULT[quality] || 1;
+  const stats = {
+    atk:  Math.floor((5  + monsterLevel * 2)  * mult),
+    def:  Math.floor((3  + monsterLevel * 1)  * mult),
+    hp:   Math.floor((10 + monsterLevel * 5)   * mult),
+    crit: Math.floor((1  + monsterLevel * 0.5) * mult),
+    spd:  parseFloat(((0.5 + monsterLevel * 0.2) * mult).toFixed(1))
+  };
+  // 20% 概率带套装
+  let set = null;
+  if (Math.random() < 0.2) {
+    const profs = ['warrior','archer','mage','rogue'];
+    const prof  = profs[Math.floor(Math.random() * profs.length)];
+    const sets  = Object.keys(SET_BONUSES[prof]);
+    set = { profession: prof, name: sets[Math.floor(Math.random() * sets.length)] };
+  }
+  return {
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    slot, slotName: SLOT_NAMES[slot], quality,
+    color: QUALITY_COLORS[quality],
+    name: QUALITY_NAMES[quality] + SLOT_NAMES[slot],
+    level: monsterLevel,
+    stats, set
+  };
+}
+
+// ─────────────────────────────────────────────────────
+// 6. 装备统计加成计算
+// ─────────────────────────────────────────────────────
+function getEquipStats() {
+  let atkB=0, defB=0, critB=0, spdB=0, hpB=0;
+  // 装备基础属性
+  for (const s of EQUIP_SLOTS) {
+    const item = G.equipped[s];
+    if (!item || !item.stats) continue;
+    if (item.stats.atk  !== undefined) atkB  += item.stats.atk;
+    if (item.stats.def  !== undefined) defB  += item.stats.def;
+    if (item.stats.crit !== undefined) critB += item.stats.crit;
+    if (item.stats.spd  !== undefined) spdB  += item.stats.spd;
+    if (item.stats.hp   !== undefined) hpB   += item.stats.hp;
+  }
+  // 套装光环属性
+  for (const setName of Object.keys(G.setBonusActivated)) {
+    const profSets = SET_BONUSES[G.player.profession];
+    const def = profSets?.[setName];
+    if (!def) continue;
+    for (const [k, v] of Object.entries(def.stats)) {
+      if (k === 'atk')  atkB  += v;
+      else if (k === 'def') defB += v;
+      else if (k === 'crit') critB += v;
+      else if (k === 'spd')  spdB  += v;
+    }
+  }
+  return { atkB, defB, critB, spdB, hpB };
+}
+
+// ─────────────────────────────────────────────────────
+// 7. 套装检查（装备/卸下时调用）
+// ─────────────────────────────────────────────────────
+function checkSetBonus() {
+  const prof   = G.player.profession;
+  const profSets = SET_BONUSES[prof];
+  if (!profSets) return [];
+
+  // 按套装名分组已穿装备
+  const bySet = {};
+  for (const s of EQUIP_SLOTS) {
+    const item = G.equipped[s];
+    if (item && item.set && item.set.profession === prof) {
+      const n = item.set.name;
+      if (!bySet[n]) bySet[n] = [];
+      bySet[n].push(item);
+    }
+  }
+
+  const activated = [];
+  for (const [setName, items] of Object.entries(bySet)) {
+    const def = profSets[setName];
+    if (!def) continue;
+    // 凑齐4件且未激活过
+    if (items.length >= def.count && !G.setBonusActivated[setName]) {
+      G.setBonusActivated[setName] = true;
+      activated.push(def);
+      showSetBonusAnim(def);
+    }
+  }
+  return activated;
+}
+
+// ─────────────────────────────────────────────────────
+// 8. 穿戴 / 卸下装备
+// ─────────────────────────────────────────────────────
+function equipItem(item) {
+  const slot = item.slot;
+  // 如果该部位已有装备，退回背包
+  if (G.equipped[slot]) {
+    G.inventory.push(G.equipped[slot]);
+  }
+  G.equipped[slot] = item;
+  // 从背包移除
+  const idx = G.inventory.findIndex(e => e.id === item.id);
+  if (idx !== -1) G.inventory.splice(idx, 1);
+  checkSetBonus();
+  updateAllUI();
+}
+
+function unequipSlot(slot) {
+  if (!G.equipped[slot]) return;
+  if (G.inventory.length >= G.maxInventorySize) {
+    showToast('背包已满！', '#ef4444'); return;
+  }
+  G.inventory.push(G.equipped[slot]);
+  G.equipped[slot] = null;
+  updateAllUI();
+}
+
+// ─────────────────────────────────────────────────────
+// 9. 角色换肤
+// ─────────────────────────────────────────────────────
+const CHAR_EMOJI = {
+  dog:    { warrior:'🐕⚔️', archer:'🐕🏹', mage:'🐕🔮', rogue:'🐕🗡️' },
+  cat:    { warrior:'🐱⚔️', archer:'🐱🏹', mage:'🐱🔮', rogue:'🐱🗡️' },
+  rabbit: { warrior:'🐰⚔️', archer:'🐰🏹', mage:'🐰🔮', rogue:'🐰🗡️' },
+  bird:   { warrior:'🐦⚔️', archer:'🐦🏹', mage:'🐦🔮', rogue:'🐦🗡️' }
+};
+
+function getCharEmoji(animal, profession) {
+  return CHAR_EMOJI[animal]?.[profession] || '🧙';
+}
+
+// ─────────────────────────────────────────────────────
+// 10. 碎片系统（击杀怪物5%概率掉落碎片，10个碎片解锁形象）
+// ─────────────────────────────────────────────────────
+function rollFragmentDrop() {
+  if (Math.random() < 0.05) {
+    const type = Math.random() < 0.5 ? 'animal' : 'profession';
+    const pool = type === 'animal' ? ANIMALS : PROFESSIONS;
+    const id   = pool[Math.floor(Math.random() * pool.length)];
+    const key  = `${type}_${id}`;
+    G.fragments[key] = (G.fragments[key] || 0) + 1;
+    if (G.fragments[key] >= 10) {
+      G.fragments[key] = 0;
+      if (type === 'animal' && !G.unlockedAnimals.includes(id)) {
+        G.unlockedAnimals.push(id);
+        showToast(`🔓 解锁动物形象：${ANIMAL_CN[id]}！`, '#f97c4a');
+      } else if (type === 'profession' && !G.unlockedProfessions.includes(id)) {
+        G.unlockedProfessions.push(id);
+        showToast(`🔓 解锁职业：${PROF_CN[id]}！`, '#f97c4a');
+      }
+    }
+    return { type, id };
+  }
+  return null;
+}
+
+// ─────────────────────────────────────────────────────
+// 11. 地图路径 UI 初始化
+// ─────────────────────────────────────────────────────
+function initMapPath() {
+  const mp = document.getElementById('map-path');
+  mp.innerHTML = '';
+  for (let i = 0; i < 21; i++) {
+    const node = document.createElement('div');
+    node.className = 'map-node' + (i === 20 ? ' boss-node' : '');
+    node.dataset.index = i;
+    mp.appendChild(node);
+    if (i < 20) {
+      const line = document.createElement('div');
+      line.className = 'map-line';
+      mp.appendChild(line);
+    }
+  }
+}
+
+function updateMapPath() {
+  const steps = G ? G.mapSteps % 21 : 0;
+  document.querySelectorAll('.map-node').forEach((n, i) => {
+    n.classList.remove('visited','active');
+    if (i < steps) n.classList.add('visited');
+    else if (i === steps) n.classList.add('active');
+  });
+}
+
+// ─────────────────────────────────────────────────────
+// 12. 怪物系统
+// ─────────────────────────────────────────────────────
+let currentMonster = null;
+
+const MONSTER_NAMES = {
+  normal: ['🐀 哥布林','🐀 史莱姆','🦇 蝙蝠','💀 骷髅','🐺 野狼'],
+  elite:  ['🐺 精英狼','👹 精英巨人','👾 精英甲虫'],
+  boss:   ['👹 关卡BOSS'],
+  worldBoss: ['🐉 世界BOSS·炎魔','🐉 世界BOSS·冰龙']
+};
+
+function getMonsterEmoji(type) {
+  if (type === 'worldBoss') return '🐉';
+  if (type === 'boss') return '👹';
+  if (type === 'elite') return '🐺';
+  return '🐀';
+}
+
+function getMonsterTypeColor(type) {
+  return { normal:'#9ca3af', elite:'#fbbf24', boss:'#ef4444', worldBoss:'#a855f7' }[type] || '#9ca3af';
+}
+
+function spawnMonster(type = 'normal', level = 1, forced = false) {
+  if (currentMonster && !forced) return currentMonster;
+
+  const isBoss   = type === 'boss' || type === 'worldBoss';
+  const hpMult   = isBoss ? (type === 'worldBoss' ? 100 : 20) : (type === 'elite' ? 5 : 1);
+  const baseHp   = 50 + level * 20;
+  const names    = MONSTER_NAMES[type] || MONSTER_NAMES.normal;
+  const emoji    = getMonsterEmoji(type);
+
+  currentMonster = {
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    type, level,
+    hp:   Math.floor(baseHp * hpMult),
+    maxHp:Math.floor(baseHp * hpMult),
+    name: names[Math.floor(Math.random() * names.length)],
+    emoji
+  };
+  updateMonsterUI();
+  return currentMonster;
+}
+
+function updateMonsterUI() {
+  const m = currentMonster;
+  if (!m) return;
+  document.getElementById('monster-sprite').textContent = m.emoji;
+  document.getElementById('monster-name').textContent   = m.name + ' · Lv.' + m.level;
+  document.getElementById('hp-bar').style.width          = Math.max(0, m.hp / m.maxHp * 100) + '%';
+  document.getElementById('hp-text').textContent        = m.hp + ' / ' + m.maxHp;
+
+  const badge = document.getElementById('monster-type-badge');
+  const color  = getMonsterTypeColor(m.type);
+  badge.style.background = color + '22';
+  badge.style.color      = color;
+  badge.textContent      = { normal:'普通', elite:'精英', boss:'BOSS', worldBoss:'世界BOSS' }[m.type] || '普通';
+
+  const sprite = document.getElementById('monster-sprite');
+  sprite.classList.remove('pulse');
+  if (m.type === 'worldBoss') sprite.classList.add('pulse');
+}
+
+// ─────────────────────────────────────────────────────
+// 13. 点击攻击处理
+// ─────────────────────────────────────────────────────
+function handleClick(e) {
+  if (!G) return;
+  G.totalClicks++;
+
+  // 如果没有怪物，先生成
+  if (!currentMonster) {
+    decideAndSpawn();
+    updateAllUI();
+    return;
+  }
+
+  // 计算伤害
+  const stats = getEquipStats();
+  const baseAtk = G.player.atk + stats.atkB;
+  const critRate = (G.player.crit + stats.critB) / 100;
+  const isCrit   = Math.random() < critRate;
+  const spdMult  = G.player.spd * (1 + stats.spdB / 100);
+  let damage      = Math.floor(baseAtk * spdMult * (isCrit ? 2 : 1));
+
+  G.totalDamage += damage;
+  currentMonster.hp -= damage;
+
+  // 伤害飘字
+  const cx = e ? e.clientX : 300 + Math.random() * 400;
+  const cy = e ? e.clientY : 200 + Math.random() * 150;
+  showDamageNum(damage, isCrit, cx, cy, currentMonster.type === 'worldBoss');
+
+  // 怪物抖动
+  const sp = document.getElementById('monster-sprite');
+  sp.classList.remove('hit');
+  void sp.offsetWidth;
+  sp.classList.add('hit');
+
+  // 怪物死亡
+  if (currentMonster.hp <= 0) {
+    currentMonster.hp = 0;
+    onMonsterKilled(currentMonster);
+    currentMonster = null;
+    setTimeout(() => { decideAndSpawn(); updateMonsterUI(); }, 400);
+  }
+
+  updateMonsterUI();
+  updateAllUI();
+}
+
+function decideAndSpawn() {
+  const s = G;
+  // 每走20步遇到 BOSS
+  if (s.mapSteps > 0 && s.mapSteps % 20 === 0) {
+    spawnMonster('boss', s.currentStage);
+    return;
+  }
+  // 每20小怪有50%概率出精英
+  if (s.stageMonstersKilled > 0 && s.stageMonstersKilled % 20 === 0 && Math.random() < 0.5) {
+    spawnMonster('elite', s.currentStage);
+    return;
+  }
+  // 普通小怪
+  spawnMonster('normal', s.currentStage);
+}
+
+function onMonsterKilled(m) {
+  G.monstersKilled++;
+  G.stageMonstersKilled++;
+  G.mapSteps++;
+
+  // 碎片掉落
+  rollFragmentDrop();
+
+  // 装备掉落
+  const quality = rollDropQualityForMonster(m);
+  const eq = generateEquipment(quality, m.level);
+  if (G.inventory.length < G.maxInventorySize) {
+    G.inventory.push(eq);
+    showDropAnim(eq);
+  }
+
+  // 检查通关（每关20只怪）
+  if (G.stageMonstersKilled >= 20) {
+    G.currentStage++;
+    G.stageMonstersKilled = 0;
+    G.mapSteps = 0;
+    G.stageCompleted++;
+    showToast('🎉 通关！进入第 ' + G.currentStage + ' 关！', '#f97c4a');
+  }
+
+  checkSetBonus();
+  updateMapPath();
+}
+
+function rollDropQualityForMonster(m) {
+  let q = rollQuality(m.level);
+  // 精英以上提升品质
+  if (m.type === 'elite') {
+    if (Math.random() < 0.3) q = 'purple';
+    else if (Math.random() < 0.5) q = 'blue';
+  }
+  if (m.type === 'boss') {
+    const r = Math.random();
+    if (r < 0.15)      q = 'orange';
+    else if (r < 0.4) q = 'purple';
+    else if (r < 0.7) q = 'blue';
+  }
+  if (m.type === 'worldBoss') {
+    q = Math.random() < 0.7 ? 'purple' : 'orange';
+  }
+  return q;
+}
+
+// ─────────────────────────────────────────────────────
+// 14. 伤害飘字
+// ─────────────────────────────────────────────────────
+function showDamageNum(dmg, isCrit, x, y, isWB = false) {
+  const layer = document.getElementById('dmg-layer');
+  const div   = document.createElement('div');
+  div.className = 'dmg-num' + (isCrit ? ' crit' : '') + (isWB ? ' wb' : '');
+  div.textContent = (isCrit ? '💥 ' : '') + dmg;
+  div.style.left  = (x || 300) + 'px';
+  div.style.top   = (y || 200) + 'px';
+  layer.appendChild(div);
+  setTimeout(() => div.remove(), 800);
+}
+
+// ─────────────────────────────────────────────────────
+// 15. 世界BOSS系统（北京时间 08:00 和 20:00 各刷新2只）
+// ─────────────────────────────────────────────────────
+let wbRefreshTimers = [];
+
+function calcNextWBRftime() {
+  const now = new Date();
+  // 转为北京时间（UTC+8）
+  const utc8 = new Date(now.getTime() + (8 - now.getTimezoneOffset()/60) * 3600000);
+  const h = utc8.getUTCHours();
+  let next;
+  if (h < 8)      next = new Date(utc8.getFullYear(), utc8.getMonth(), utc8.getDate(), 8, 0, 0);
+  else if (h < 20) next = new Date(utc8.getFullYear(), utc8.getMonth(), utc8.getDate(), 20, 0, 0);
+  else {
+    next = new Date(utc8.getFullYear(), utc8.getMonth(), utc8.getDate() + 1, 8, 0, 0);
+  }
+  // 换回本地时间戳
+  return new Date(next.getTime() - (8 - now.getTimezoneOffset()/60) * 3600000).getTime();
+}
+
+function updateWBTimer() {
+  const next = calcNextWBRftime();
+  const diff = next - Date.now();
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  document.getElementById('wb-timer').textContent =
+    '世界BOSS: ' + h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
+}
+
+function spawnWorldBosses() {
+  G.worldBosses = [];
+  for (let i = 0; i < 2; i++) {
+    const names = ['🐉 世界BOSS·炎魔','🐉 世界BOSS·冰龙'];
+    const baseHp = 500 + G.currentStage * 100;
+    G.worldBosses.push({
+      id: 'wb_' + i,
+      name: names[i],
+      level: G.currentStage * 5,
+      hp: baseHp * 100,
+      maxHp: baseHp * 100,
+      active: true,
+      index: i
+    });
+  }
+  showToast('🐉 世界BOSS已刷新！点击进入战斗！', '#a855f7');
+  updateWBPanel();
+}
+
+function updateWBPanel() {
+  const panel = document.getElementById('wb-panel');
+  const list  = document.getElementById('wb-list');
+  if (!G.worldBosses.length) { panel.classList.remove('show'); return; }
+  list.innerHTML = G.worldBosses.map(b => {
+    const pct = Math.max(0, b.hp / b.maxHp * 100).toFixed(0);
+    return `<div class="wb-item" style="cursor:pointer" onclick="fightWorldBoss(${b.index})">
+      <span class="wb-name">${b.name}</span>
+      <span class="wb-hp">${pct}%</span>
+    </div>
+    <div style="height:4px;background:#3d2a14;border-radius:2px;margin-bottom:6px">
+      <div style="height:4px;width:${pct}%;background:#ef4444;border-radius:2px"></div>
+    </div>`;
+  }).join('');
+}
+
+function fightWorldBoss(index) {
+  const wb = G.worldBosses[index];
+  if (!wb || !wb.active) return;
+  document.getElementById('wb-panel').classList.remove('show');
+  // 切换到世界BOSS战斗
+  currentMonster = {
+    id: wb.id, type: 'worldBoss', level: wb.level,
+    hp: wb.hp, maxHp: wb.maxHp,
+    name: wb.name, emoji: '🐉'
+  };
+  wb._monRef = currentMonster; // 引用，方便更新
+  updateMonsterUI();
+  showToast('⚔️ 世界BOSS战开始！', '#a855f7');
+}
+
+function toggleWbPanel() {
+  document.getElementById('wb-panel').classList.toggle('show');
+  updateWBPanel();
+}
+
+// ─────────────────────────────────────────────────────
+// 16. 弹窗系统
+// ─────────────────────────────────────────────────────
+function closeAllModals() {
+  document.querySelectorAll('.modal').forEach(m => m.remove());
+}
+
+function showEquipDetail(item) {
+  closeAllModals();
+  const modal = document.createElement('div');
+  modal.className = 'modal show';
+  modal.innerHTML = `
+    <div class="modal-content" style="border-color:${item.color}">
+      <button class="modal-close" onclick="closeAllModals()">×</button>
+      <div class="equip-modal-header">
+        <div class="equip-modal-name" style="color:${item.color}">${item.name}</div>
+        <div class="equip-modal-meta">Lv.${item.level} · ${item.slotName}</div>
+      </div>
+      <div class="equip-modal-stats">
+        ${Object.entries(item.stats).map(([k,v]) => `<div class="equip-stat-row"><span class="k">${k==='atk'?'攻击':k==='def'?'防御':k==='hp'?'生命':k==='crit'?'暴击':'速度'}</span><span class="v">+${v}</span></div>`).join('')}
+      </div>
+      ${item.set ? `<div class="equip-set-tag">⚡ 套装：${item.set.name}（凑齐4件激活光环）</div>` : ''}
+      <div class="equip-modal-actions">
+        <button class="btn-primary" onclick="equipFromModal('${item.id}')">穿戴</button>
+        <button class="btn-secondary" onclick="closeAllModals()">关闭</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeAllModals(); });
+}
+
+function equipFromModal(id) {
+  const item = G.inventory.find(e => e.id === id);
+  if (item) { equipItem(item); closeAllModals(); }
+}
+
+function showSkinModal() {
+  closeAllModals();
+  const a = G.player.animal, p = G.player.profession;
+  const modal = document.createElement('div');
+  modal.className = 'modal show';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeAllModals()">×</button>
+      <div class="modal-title">🎨 角色换肤</div>
+      <div class="skin-section">
+        <div class="skin-section-title">动物形象（收集碎片解锁）</div>
+        <div class="skin-grid">
+          ${ANIMALS.map(an => {
+            const unlocked = G.unlockedAnimals.includes(an);
+            const active   = an === a;
+            return `<div class="skin-card ${active?'active':''} ${unlocked?'':'locked'}"
+              ${unlocked ? `onclick="selectAnimal('${an}')"` : ''}>
+              <div class="skin-emoji">${CHAR_EMOJI[an]?.[p] || '🐕'}</div>
+              <div class="skin-name">${active?'✓ ':''}${ANIMAL_CN[an]}</div>
+              ${!unlocked ? '<div class="skin-lock">🔒</div>' : ''}
+            </div>`;
+          }).join('')}
         </div>
-        <div id="monster-hp-text">10 / 10</div>
       </div>
-      <div id="monster-type-badge" class="badge-normal">小怪</div>
-    </div>
-
-    <!-- 点击特效层 -->
-    <div id="click-effects"></div>
-    <div id="damage-numbers"></div>
-
-    <!-- 操作提示 -->
-    <div id="click-hint">点击任意位置 或 按任意键 攻击！</div>
-  </section>
-
-  <!-- 右侧：数据统计 -->
-  <aside id="stats-panel">
-    <h3>📊 战斗统计</h3>
-    <div class="stat-row"><span>点击次数</span><span id="stat-clicks">0</span></div>
-    <div class="stat-row"><span>攻击次数</span><span id="stat-attacks">0</span></div>
-    <div class="stat-row"><span>击杀小怪</span><span id="stat-kills-normal">0</span></div>
-    <div class="stat-row"><span>击杀精英</span><span id="stat-kills-elite">0</span></div>
-    <div class="stat-row"><span>击杀BOSS</span><span id="stat-kills-boss">0</span></div>
-    <div class="stat-row"><span>通关次数</span><span id="stat-stage-clear">0</span></div>
-    <div class="stat-row"><span>收集装备</span><span id="stat-equip">0</span></div>
-    <div class="stat-row"><span>已解锁形象</span><span id="stat-skins">1</span></div>
-
-    <h3>📦 背包 <span id="inv-count">0/100</span></h3>
-    <div id="inventory-grid"></div>
-
-    <button id="btn-bestiary" class="btn-secondary">📖 怪物图鉴</button>
-  </aside>
-</main>
-
-<!-- 底部：装备栏 -->
-<footer id="equipment-bar">
-  <div class="equip-slot" data-slot="weapon" title="武器">
-    <div class="slot-icon">⚔️</div>
-    <div class="slot-label">武器</div>
-  </div>
-  <div class="equip-slot" data-slot="helmet" title="头盔">
-    <div class="slot-icon">🪖</div>
-    <div class="slot-label">头盔</div>
-  </div>
-  <div class="equip-slot" data-slot="chest" title="胸甲">
-    <div class="slot-icon">🦺</div>
-    <div class="slot-label">胸甲</div>
-  </div>
-  <div class="equip-slot" data-slot="legs" title="护腿">
-    <div class="slot-icon">👖</div>
-    <div class="slot-label">护腿</div>
-  </div>
-  <div class="equip-slot" data-slot="gloves" title="手套">
-    <div class="slot-icon">🧤</div>
-    <div class="slot-label">手套</div>
-  </div>
-  <div class="equip-slot" data-slot="ring1" title="戒指1">
-    <div class="slot-icon">💍</div>
-    <div class="slot-label">戒指</div>
-  </div>
-  <div class="equip-slot" data-slot="ring2" title="戒指2">
-    <div class="slot-icon">💍</div>
-    <div class="slot-label">戒指</div>
-  </div>
-  <div class="equip-slot" data-slot="earring1" title="耳环1">
-    <div class="slot-icon">📿</div>
-    <div class="slot-label">耳环</div>
-  </div>
-  <div class="equip-slot" data-slot="earring2" title="耳环2">
-    <div class="slot-icon">📿</div>
-    <div class="slot-label">耳环</div>
-  </div>
-</footer>
-
-<!-- ═══════════════════════════════════════ -->
-<!-- 弹窗层 -->
-<!-- ═══════════════════════════════════════ -->
-
-<!-- 装备详情弹窗 -->
-<div id="modal-equip" class="modal hidden">
-  <div class="modal-content equip-detail">
-    <button class="modal-close">✕</button>
-    <div class="equip-quality-bar" id="eq-quality-bar"></div>
-    <h2 id="eq-name">装备名称</h2>
-    <div class="eq-meta">
-      <span id="eq-type">武器</span> · <span id="eq-slot">武器</span> · <span id="eq-job">全职业</span>
-    </div>
-    <div class="eq-set" id="eq-set"></div>
-    <div class="eq-stats" id="eq-stats"></div>
-    <div class="eq-actions">
-      <button id="eq-equip" class="btn-primary">穿戴</button>
-      <button id="eq-scrap" class="btn-danger">分解</button>
-    </div>
-  </div>
-</div>
-
-<!-- 角色换肤弹窗 -->
-<div id="modal-skin" class="modal hidden">
-  <div class="modal-content skin-panel">
-    <button class="modal-close">✕</button>
-    <h2>🎨 角色换肤</h2>
-    <div class="skin-section">
-      <h3>动物形象</h3>
-      <div class="skin-options" id="skin-animals"></div>
-    </div>
-    <div class="skin-section">
-      <h3>职业形象</h3>
-      <div class="skin-options" id="skin-jobs"></div>
-    </div>
-    <div class="skin-preview">
-      <div id="skin-preview-icon" class="char-icon">🐕</div>
-      <div id="skin-preview-name">狗 · 剑士</div>
-    </div>
-    <button id="skin-apply" class="btn-primary">应用形象</button>
-  </div>
-</div>
-
-<!-- 怪物图鉴弹窗 -->
-<div id="modal-bestiary" class="modal hidden">
-  <div class="modal-content bestiary">
-    <button class="modal-close">✕</button>
-    <h2>📖 怪物图鉴</h2>
-    <div class="bestiary-grid">
-      <div class="bestiary-card normal">
-        <div class="bc-icon">🐀</div>
-        <div class="bc-name">小怪</div>
-        <div class="bc-desc">均匀分布在地图节点，每步遇怪概率</div>
-        <div class="bc-hp">HP ×1</div>
-        <div class="bc-drop">掉率 ×1，绿装为主</div>
+      <div class="skin-section">
+        <div class="skin-section-title">职业（收集碎片解锁）</div>
+        <div class="skin-grid">
+          ${PROFESSIONS.map(pr => {
+            const unlocked = G.unlockedProfessions.includes(pr);
+            const active   = pr === p;
+            return `<div class="skin-card ${active?'active':''} ${unlocked?'':'locked'}"
+              ${unlocked ? `onclick="selectProfession('${pr}')"` : ''}>
+              <div class="skin-emoji">${CHAR_EMOJI[a]?.[pr] || '⚔️'}</div>
+              <div class="skin-name">${active?'✓ ':''}${PROF_CN[pr]}</div>
+              ${!unlocked ? '<div class="skin-lock">🔒</div>' : ''}
+            </div>`;
+          }).join('')}
+        </div>
       </div>
-      <div class="bestiary-card elite">
-        <div class="bc-icon">🐺</div>
-        <div class="bc-name">精英怪</div>
-        <div class="bc-desc">每20只小怪随机刷新1只</div>
-        <div class="bc-hp">HP ×5</div>
-        <div class="bc-drop">掉率 ×3，蓝紫装概率提升</div>
-      </div>
-      <div class="bestiary-card boss">
-        <div class="bc-icon">👹</div>
-        <div class="bc-name">普通BOSS</div>
-        <div class="bc-desc">每个关卡终点固定出现</div>
-        <div class="bc-hp">HP ×20</div>
-        <div class="bc-drop">掉率 ×10，紫装保底</div>
-      </div>
-      <div class="bestiary-card worldboss">
-        <div class="bc-icon">🐉</div>
-        <div class="bc-name">世界BOSS</div>
-        <div class="bc-desc">每日 08:00 / 20:00 刷新，各2只</div>
-        <div class="bc-hp">HP ×100</div>
-        <div class="bc-drop">掉率 ×50，橙红装保底</div>
-      </div>
-    </div>
-    <div class="bestiary-rule">
-      <h4>刷新规则</h4>
-      <ul>
-        <li>小怪：每走20步触发一次遭遇</li>
-        <li>精英怪：每20只小怪中随机1只替换为精英</li>
-        <li>BOSS：关卡终点100%出现，通关后下一关解锁</li>
-        <li>世界BOSS：每日08:00和20:00(北京时间)各刷新2只</li>
-      </ul>
-    </div>
-  </div>
-</div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeAllModals(); });
+}
 
-<!-- 套装触发公告 -->
-<div id="modal-setbonus" class="modal hidden">
-  <div class="modal-content set-bonus-popup">
-    <div class="sbp-title">✨ 套装光环触发！</div>
-    <div id="sbp-name" class="sbp-name"></div>
-    <div id="sbp-effect" class="sbp-effect"></div>
-  </div>
-</div>
+function selectAnimal(an) {
+  G.player.animal = an;
+  updateCharUI();
+  closeAllModals();
+  updateAllUI();
+}
 
-<!-- 存档提示 -->
-<div id="toast-save" class="toast hidden">💾 自动存档中...</div>
+function selectProfession(pr) {
+  G.player.profession = pr;
+  // 换职业后重算套装效果
+  G.setBonusActivated = {};
+  checkSetBonus();
+  updateCharUI();
+  closeAllModals();
+  updateAllUI();
+}
 
-<script type="module" src="./modules/main.js"></script>
+function showBestiary() {
+  closeAllModals();
+  const modal = document.createElement('div');
+  modal.className = 'modal show';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeAllModals()">×</button>
+      <div class="modal-title">📖 怪物图鉴</div>
+      <div class="guide-list">
+        <div class="guide-item" style="border-color:#9ca3af">
+          <div class="gi-name" style="color:#9ca3af">🐀 普通小怪</div>
+          <div class="gi-desc">每节点100%刷新 · HP倍率×1 · 掉率倍率×1</div>
+        </div>
+        <div class="guide-item" style="border-color:#fbbf24">
+          <div class="gi-name" style="color:#fbbf24">🐺 精英怪</div>
+          <div class="gi-desc">每20小怪有50%概率出现 · HP倍率×5 · 掉率倍率×3</div>
+        </div>
+        <div class="guide-item" style="border-color:#ef4444">
+          <div class="gi-name" style="color:#ef4444">👹 关卡BOSS</div>
+          <div class="gi-desc">每关卡第20步出现 · HP倍率×20 · 掉率倍率×10</div>
+        </div>
+        <div class="guide-item" style="border-color:#a855f7">
+          <div class="gi-name" style="color:#a855f7">🐉 世界BOSS</div>
+          <div class="gi-desc">北京时间 08:00/20:00 各刷新2只 · HP倍率×100 · 保底紫装</div>
+        </div>
+        <div class="guide-item" style="border-color:#4ade80">
+          <div class="gi-name" style="color:#4ade80">⚡ 套装系统</div>
+          <div class="gi-desc">每职业3套套装，凑齐4件激活光环效果</div>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeAllModals(); });
+}
+
+// ─────────────────────────────────────────────────────
+// 17. 动画特效
+// ─────────────────────────────────────────────────────
+function showDropAnim(eq) {
+  const div = document.createElement('div');
+  div.className = 'drop-anim';
+  div.style.borderColor = eq.color;
+  div.innerHTML = `<div class="da-name" style="color:${eq.color}">${eq.name}</div>
+    <div class="da-quality">${QUALITY_NAMES[eq.quality]}</div>
+    <div class="da-slot">${eq.slotName}${eq.set ? ' · ' + eq.set.name : ''}</div>`;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2200);
+}
+
+function showSetBonusAnim(def) {
+  const div = document.createElement('div');
+  div.className = 'set-anim';
+  div.innerHTML = `<div class="sa-title">✨ 套装激活</div>
+    <div class="sa-name">${def.name}</div>
+    <div class="sa-stats">${Object.entries(def.stats).map(([k,v]) => '+' + v + ' ' + k).join(' · ')}</div>`;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3200);
+}
+
+function showToast(msg, color = '#f5e6c8') {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.className = 'toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.color = color;
+  t.style.display = 'block';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => { t.style.display = 'none'; }, 2200);
+}
+
+function doSave() { saveGame(); }
+
+// ─────────────────────────────────────────────────────
+// 18. 装备栏点击
+// ─────────────────────────────────────────────────────
+function clickEquipSlot(slot) {
+  const item = G.equipped[slot];
+  if (item) {
+    showEquipDetail(item);
+  } else {
+    // 找背包里对应槽位的物品
+    const found = G.inventory.find(e => e.slot === slot);
+    if (found) showEquipDetail(found);
+    else showToast('该部位暂无装备', '#a89070');
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// 19. UI 更新（统一刷新）
+// ─────────────────────────────────────────────────────
+function updateAllUI() {
+  if (!G) return;
+  // 角色面板
+  updateCharUI();
+  // 顶部栏
+  document.getElementById('stage-num').textContent  = G.currentStage;
+  document.getElementById('kill-count').textContent = G.stageMonstersKilled;
+  const pct = (G.mapSteps % 21) / 21 * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  // 统计
+  document.getElementById('s-clicks').textContent  = G.totalClicks.toLocaleString();
+  document.getElementById('s-damage').textContent  = G.totalDamage.toLocaleString();
+  document.getElementById('s-kills').textContent   = G.monstersKilled.toLocaleString();
+  document.getElementById('s-clears').textContent  = G.stageCompleted;
+  // 背包
+  document.getElementById('inv-count').textContent = G.inventory.length + '/' + G.maxInventorySize;
+  renderInventory();
+  // 装备栏
+  renderEquipBar();
+  // 套装
+  renderActiveSet();
+}
+
+function updateCharUI() {
+  if (!G) return;
+  const emoji = getCharEmoji(G.player.animal, G.player.profession);
+  document.getElementById('char-icon').textContent = emoji;
+  document.getElementById('char-label').textContent = ANIMAL_CN[G.player.animal] + ' · ' + PROF_CN[G.player.profession];
+
+  const stats = getEquipStats();
+  const totalAtk  = G.player.atk  + stats.atkB;
+  const totalCrit = Math.min(100, G.player.crit + stats.critB);
+  const totalDef  = G.player.def  + stats.defB;
+  const totalHp   = G.player.maxHp + stats.hpB;
+
+  document.getElementById('stat-atk').textContent  = totalAtk;
+  document.getElementById('stat-crit').textContent = totalCrit + '%';
+  document.getElementById('stat-def').textContent  = totalDef;
+  document.getElementById('stat-hp').textContent   = totalHp;
+}
+
+function renderInventory() {
+  const grid = document.getElementById('inv-grid');
+  grid.innerHTML = '';
+  for (const item of G.inventory.slice(0, 30)) { // 最多显示30格
+    const slot = document.createElement('div');
+    slot.className = 'inv-slot';
+    slot.style.borderColor = item.color;
+    slot.innerHTML = `<div class="inv-quality-bar" style="background:${item.color}"></div>
+      <div class="inv-icon">${SLOT_ICONS[item.slot] || '📦'}</div>
+      <div class="inv-name">${item.name.length > 4 ? item.name.substr(0,3) : item.name}</div>`;
+    slot.onclick = () => showEquipDetail(item);
+    grid.appendChild(slot);
+  }
+  // 剩余空格
+  for (let i = G.inventory.length; i < 30; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'inv-slot';
+    empty.style.opacity = '0.3';
+    grid.appendChild(empty);
+  }
+}
+
+function renderEquipBar() {
+  for (const slot of EQUIP_SLOTS) {
+    const el  = document.querySelector(`.equip-slot[data-slot="${slot}"]`);
+    if (!el) continue;
+    const item = G.equipped[slot];
+    if (item) {
+      el.style.borderColor = item.color;
+      el.querySelector('.slot-icon').textContent = SLOT_ICONS[slot] || '📦';
+      el.querySelector('.slot-name').textContent = item.name.length > 3 ? item.name.substr(0,3) : item.name;
+      // 质量条
+      let qbar = el.querySelector('.slot-quality-bar');
+      if (!qbar) { qbar = document.createElement('div'); qbar.className = 'slot-quality-bar'; el.appendChild(qbar); }
+      qbar.style.background = item.color;
+    } else {
+      el.style.borderColor = '#5a3f20';
+      el.querySelector('.slot-icon').textContent = SLOT_ICONS[slot] || '📦';
+      el.querySelector('.slot-name').textContent  = SLOT_NAMES[slot];
+      const qbar = el.querySelector('.slot-quality-bar');
+      if (qbar) qbar.remove();
+    }
+  }
+}
+
+function renderActiveSet() {
+  const el  = document.getElementById('active-set');
+  const names = Object.keys(G.setBonusActivated);
+  if (names.length) {
+    el.textContent = '⚡ ' + names.join(' · ');
+  } else {
+    el.textContent = '';
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// 20. 键盘支持（空格键攻击）
+// ─────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.repeat) return;
+  if (e.code === 'Space' || e.key === ' ') {
+    e.preventDefault();
+    handleClick({ clientX: 380 + Math.random() * 300, clientY: 280 + Math.random() * 120 });
+  }
+});
+
+// ─────────────────────────────────────────────────────
+// 21. 世界BOSS定时器
+// ─────────────────────────────────────────────────────
+let lastWBHour = -1;
+
+function checkWorldBossSpawn() {
+  const now  = new Date();
+  const h    = now.getHours();
+  const m    = now.getMinutes();
+  // 北京时间 08:00 和 20:00（北京时间 = 本地时区 + 时差）
+  // 简单判断本地时间的小时（假设用户在中国时区）
+  const isTargetHour = (h === 8 || h === 20) && m < 1;
+  if (isTargetHour && h !== lastWBHour) {
+    lastWBHour = h;
+    spawnWorldBosses();
+  }
+}
+
+// ─────────────────────────────────────────────────────
+// 22. 游戏主循环
+// ─────────────────────────────────────────────────────
+function gameLoop() {
+  if (!G) return;
+  updateWBTimer();
+  checkWorldBossSpawn();
+}
+setInterval(gameLoop, 1000);
+
+// ─────────────────────────────────────────────────────
+// 23. 初始化
+// ─────────────────────────────────────────────────────
+function init() {
+  // 尝试加载存档，否则新建
+  const loaded = loadGame();
+  if (!loaded) {
+    G = initState();
+  }
+
+  initMapPath();
+  updateMapPath();
+  updateAllUI();
+  decideAndSpawn();
+
+  // 自动存档（每30秒）
+  setInterval(saveGame, 30000);
+
+  // 关闭页面前存档
+  window.addEventListener('beforeunload', () => saveGame());
+
+  showToast('🎮 迷宫猎手 · 加载完成！', '#f97c4a');
+}
+
+init();
+</script>
 </body>
 </html>
