@@ -7,8 +7,23 @@ on:
     branches: [master]
 
 jobs:
+  # ── 前端构建 ──
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+        env:
+          # Vite builds for GitHub Pages
+          BASE_URL: ./
+
   # ── GitHub Pages 线上版 ──
   deploy-pages:
+    needs: build-frontend
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -16,14 +31,19 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build:web
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./
+          path: ./dist
 
   # ── Tauri 桌面构建 ──
   build-desktop:
+    needs: build-frontend
     strategy:
       fail-fast: false
       matrix:
@@ -31,23 +51,22 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           profile: minimal
-
       - name: Install Linux deps
         if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
+      - run: npm ci
+      - run: npm run build
+        env:
+          # For Tauri build, the frontendDist is ./dist
+          TAURI_BUILD_frontendDist: ./dist
       - name: Build Tauri
         uses: tauri-apps/tauri-action@v0
         env:

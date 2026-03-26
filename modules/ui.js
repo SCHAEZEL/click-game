@@ -385,6 +385,8 @@ export function updateMapUI(steps) {
     }
   });
 }
+
+export function updateEquipmentSlotsUI() {
   const state = getState();
   if (!uiElements.equipmentSlots) return;
   
