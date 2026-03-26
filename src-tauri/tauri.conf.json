@@ -4,11 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.clickers.maomao",
   "build": {
-    "devUrl": "http://localhost:1420",
-    "frontendDist": "../src",
-    "beforeDevCommand": "",
-    "beforeBuildCommand": "",
-    "devtools": true
+    "frontendDist": "../src"
   },
   "app": {
     "windows": [
