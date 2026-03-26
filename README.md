@@ -2,13 +2,23 @@
 
 > 迷宫饭风格的放置点击游戏，扮演勇敢的猎手在地下城中冒险
 
-🎮 **开发中** — 敬请期待
+## 🎮 在线版（免安装）
 
-## 技术栈
+**线上地址**: https://SCHAEZEL.github.io/click-game/
 
-- **前端**: 原生 HTML5 + CSS3 + JavaScript（ES Modules）
-- **桌面框架**: Tauri 2（Rust + WebView2）
-- **无外部依赖**，单文件可运行
+直接浏览器打开，无需下载安装。
+
+## 💻 桌面版（离线可用）
+
+下载 exe 文件到本地，双击即可运行（完全离线可用）：
+
+| 平台 | 状态 |
+|------|------|
+| Windows | ✅ Build by GitHub Actions |
+| macOS | 🔜 Coming soon |
+| Linux | 🔜 Coming soon |
+
+Releases: https://github.com/SCHAEZEL/click-game/releases
 
 ## 运行方式
 
@@ -23,7 +33,6 @@ npm run dev
 npm install
 npm run build
 ```
-
 exe 文件输出到：`src-tauri/target/release/click-game.exe`
 
 ## 游戏特性
@@ -38,24 +47,25 @@ exe 文件输出到：`src-tauri/target/release/click-game.exe`
 
 ```
 click-game/
-├── src/                    # 前端源码
-│   ├── index.html          # 主页面
-│   ├── style.css           # 样式
-│   └── modules/            # 游戏模块
-│       ├── config.js       # 配置常量
-│       ├── state.js        # 状态管理
-│       ├── click.js        # 点击引擎
-│       ├── map.js          # 地图关卡
-│       ├── monster.js       # 怪物系统
-│       ├── equipment.js     # 装备掉落
-│       ├── character.js     # 角色换肤
-│       ├── save.js         # 存档
-│       └── ui.js           # 界面动画
-├── src-tauri/              # Tauri 后端
-│   ├── src/main.rs         # Rust 入口
-│   ├── tauri.conf.json     # Tauri 配置
-│   └── Cargo.toml          # Rust 依赖
-└── .github/workflows/      # CI/CD
+├── frontend/                   # 🌐 Web 前端（GitHub Pages 部署）
+│   ├── index.html
+│   ├── style.css
+│   └── modules/
+│       ├── config.js
+│       ├── state.js
+│       ├── click.js
+│       ├── map.js
+│       ├── monster.js
+│       ├── equipment.js
+│       ├── character.js
+│       ├── save.js
+│       └── ui.js
+├── src-tauri/                 # 💻 Tauri 桌面应用
+│   ├── src/main.rs
+│   ├── tauri.conf.json
+│   └── Cargo.toml
+└── .github/workflows/
+    └── deploy.yml             # 同时部署 Pages + 构建桌面 App
 ```
 
 ## License
