@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>迷宫猎手 - Dungeon Clicker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 顶部关卡进度条 -->
+<header id="stage-header">
+  <div class="stage-info">
+    <span id="stage-name">第 1 关</span>
+    <span id="stage-progress-text">怪物: 0/20</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div id="stage-progress-bar" class="progress-bar"></div>
+  </div>
+  <div class="boss-timer" id="world-boss-timer">
+    🌍 世界BOSS: <span id="wb-countdown">--:--:--</span> | 剩余 <span id="wb-remaining">5</span> 次
+  </div>
+</header>
+
+<!-- 主游戏区域 -->
+<main id="game-main">
+  <!-- 左侧：角色展示 -->
+  <aside id="char-panel">
+    <div id="char-display">
+      <div id="char-icon" class="char-icon">🐕</div>
+      <div id="char-job" class="char-label">剑士</div>
+      <div id="char-animal" class="char-label">狗</div>
+    </div>
+    <button id="btn-skin" class="btn-secondary">🎨 换肤</button>
+    <div class="char-stats-mini">
+      <div>攻击: <span id="char-atk">10</span></div>
+      <div>暴击: <span id="char-crit">5</span>%</div>
+      <div>套装: <span id="char-set">—</span></div>
+    </div>
+  </aside>
+
+  <!-- 中间：游戏主战场 -->
+  <section id="game-area">
+    <!-- 地图节点 -->
+    <div id="map-container">
+      <div id="map-path">
+        <div id="player-node" class="node player">🐕</div>
+        <!-- 怪物节点动态生成 -->
+      </div>
+      <div id="map-nodes" class="map-nodes"></div>
+    </div>
+
+    <!-- 怪物展示 -->
+    <div id="monster-zone">
+      <div id="monster-sprite" class="monster-sprite normal">🐀</div>
+      <div id="monster-info">
+        <div id="monster-name">小怪·Lv.1</div>
+        <div class="hp-bar-wrap">
+          <div id="monster-hp-bar" class="hp-bar"></div>
+        </div>
+        <div id="monster-hp-text">10 / 10</div>
+      </div>
+      <div id="monster-type-badge" class="badge-normal">小怪</div>
+    </div>
+
+    <!-- 点击特效层 -->
+    <div id="click-effects"></div>
+    <div id="damage-numbers"></div>
+
+    <!-- 操作提示 -->
+    <div id="click-hint">点击任意位置 或 按任意键 攻击！</div>
+  </section>
+
+  <!-- 右侧：数据统计 -->
+  <aside id="stats-panel">
+    <h3>📊 战斗统计</h3>
+    <div class="stat-row"><span>点击次数</span><span id="stat-clicks">0</span></div>
+    <div class="stat-row"><span>攻击次数</span><span id="stat-attacks">0</span></div>
+    <div class="stat-row"><span>击杀小怪</span><span id="stat-kills-normal">0</span></div>
+    <div class="stat-row"><span>击杀精英</span><span id="stat-kills-elite">0</span></div>
+    <div class="stat-row"><span>击杀BOSS</span><span id="stat-kills-boss">0</span></div>
+    <div class="stat-row"><span>通关次数</span><span id="stat-stage-clear">0</span></div>
+    <div class="stat-row"><span>收集装备</span><span id="stat-equip">0</span></div>
+    <div class="stat-row"><span>已解锁形象</span><span id="stat-skins">1</span></div>
+
+    <h3>📦 背包 <span id="inv-count">0/100</span></h3>
+    <div id="inventory-grid"></div>
+
+    <button id="btn-bestiary" class="btn-secondary">📖 怪物图鉴</button>
+  </aside>
+</main>
+
+<!-- 底部：装备栏 -->
+<footer id="equipment-bar">
+  <div class="equip-slot" data-slot="weapon" title="武器">
+    <div class="slot-icon">⚔️</div>
+    <div class="slot-label">武器</div>
+  </div>
+  <div class="equip-slot" data-slot="helmet" title="头盔">
+    <div class="slot-icon">🪖</div>
+    <div class="slot-label">头盔</div>
+  </div>
+  <div class="equip-slot" data-slot="chest" title="胸甲">
+    <div class="slot-icon">🦺</div>
+    <div class="slot-label">胸甲</div>
+  </div>
+  <div class="equip-slot" data-slot="legs" title="护腿">
+    <div class="slot-icon">👖</div>
+    <div class="slot-label">护腿</div>
+  </div>
+  <div class="equip-slot" data-slot="gloves" title="手套">
+    <div class="slot-icon">🧤</div>
+    <div class="slot-label">手套</div>
+  </div>
+  <div class="equip-slot" data-slot="ring1" title="戒指1">
+    <div class="slot-icon">💍</div>
+    <div class="slot-label">戒指</div>
+  </div>
+  <div class="equip-slot" data-slot="ring2" title="戒指2">
+    <div class="slot-icon">💍</div>
+    <div class="slot-label">戒指</div>
+  </div>
+  <div class="equip-slot" data-slot="earring1" title="耳环1">
+    <div class="slot-icon">📿</div>
+    <div class="slot-label">耳环</div>
+  </div>
+  <div class="equip-slot" data-slot="earring2" title="耳环2">
+    <div class="slot-icon">📿</div>
+    <div class="slot-label">耳环</div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- 弹窗层 -->
+<!-- ═══════════════════════════════════════ -->
+
+<!-- 装备详情弹窗 -->
+<div id="modal-equip" class="modal hidden">
+  <div class="modal-content equip-detail">
+    <button class="modal-close">✕</button>
+    <div class="equip-quality-bar" id="eq-quality-bar"></div>
+    <h2 id="eq-name">装备名称</h2>
+    <div class="eq-meta">
+      <span id="eq-type">武器</span> · <span id="eq-slot">武器</span> · <span id="eq-job">全职业</span>
+    </div>
+    <div class="eq-set" id="eq-set"></div>
+    <div class="eq-stats" id="eq-stats"></div>
+    <div class="eq-actions">
+      <button id="eq-equip" class="btn-primary">穿戴</button>
+      <button id="eq-scrap" class="btn-danger">分解</button>
+    </div>
+  </div>
+</div>
+
+<!-- 角色换肤弹窗 -->
+<div id="modal-skin" class="modal hidden">
+  <div class="modal-content skin-panel">
+    <button class="modal-close">✕</button>
+    <h2>🎨 角色换肤</h2>
+    <div class="skin-section">
+      <h3>动物形象</h3>
+      <div class="skin-options" id="skin-animals"></div>
+    </div>
+    <div class="skin-section">
+      <h3>职业形象</h3>
+      <div class="skin-options" id="skin-jobs"></div>
+    </div>
+    <div class="skin-preview">
+      <div id="skin-preview-icon" class="char-icon">🐕</div>
+      <div id="skin-preview-name">狗 · 剑士</div>
+    </div>
+    <button id="skin-apply" class="btn-primary">应用形象</button>
+  </div>
+</div>
+
+<!-- 怪物图鉴弹窗 -->
+<div id="modal-bestiary" class="modal hidden">
+  <div class="modal-content bestiary">
+    <button class="modal-close">✕</button>
+    <h2>📖 怪物图鉴</h2>
+    <div class="bestiary-grid">
+      <div class="bestiary-card normal">
+        <div class="bc-icon">🐀</div>
+        <div class="bc-name">小怪</div>
+        <div class="bc-desc">均匀分布在地图节点，每步遇怪概率</div>
+        <div class="bc-hp">HP ×1</div>
+        <div class="bc-drop">掉率 ×1，绿装为主</div>
+      </div>
+      <div class="bestiary-card elite">
+        <div class="bc-icon">🐺</div>
+        <div class="bc-name">精英怪</div>
+        <div class="bc-desc">每20只小怪随机刷新1只</div>
+        <div class="bc-hp">HP ×5</div>
+        <div class="bc-drop">掉率 ×3，蓝紫装概率提升</div>
+      </div>
+      <div class="bestiary-card boss">
+        <div class="bc-icon">👹</div>
+        <div class="bc-name">普通BOSS</div>
+        <div class="bc-desc">每个关卡终点固定出现</div>
+        <div class="bc-hp">HP ×20</div>
+        <div class="bc-drop">掉率 ×10，紫装保底</div>
+      </div>
+      <div class="bestiary-card worldboss">
+        <div class="bc-icon">🐉</div>
+        <div class="bc-name">世界BOSS</div>
+        <div class="bc-desc">每日 08:00 / 20:00 刷新，各2只</div>
+        <div class="bc-hp">HP ×100</div>
+        <div class="bc-drop">掉率 ×50，橙红装保底</div>
+      </div>
+    </div>
+    <div class="bestiary-rule">
+      <h4>刷新规则</h4>
+      <ul>
+        <li>小怪：每走20步触发一次遭遇</li>
+        <li>精英怪：每20只小怪中随机1只替换为精英</li>
+        <li>BOSS：关卡终点100%出现，通关后下一关解锁</li>
+        <li>世界BOSS：每日08:00和20:00(北京时间)各刷新2只</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 套装触发公告 -->
+<div id="modal-setbonus" class="modal hidden">
+  <div class="modal-content set-bonus-popup">
+    <div class="sbp-title">✨ 套装光环触发！</div>
+    <div id="sbp-name" class="sbp-name"></div>
+    <div id="sbp-effect" class="sbp-effect"></div>
+  </div>
+</div>
+
+<!-- 存档提示 -->
+<div id="toast-save" class="toast hidden">💾 自动存档中...</div>
+
+<script type="module" src="./modules/main.js"></script>
+</body>
+</html>
