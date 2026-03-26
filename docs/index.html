@@ -53,6 +53,8 @@
     #monster-sprite.pulse { animation: pulse 1s infinite; }
     @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px) scale(0.9)} 75%{transform:translateX(8px) scale(0.9)} }
     @keyframes pulse { 0%,100%{filter:drop-shadow(0 0 8px #a855f7)} 50%{filter:drop-shadow(0 0 20px #a855f7)} }
+    .monster-dying { animation: monsterDie 0.5s ease forwards; }
+    @keyframes monsterDie { 0%{transform:scale(1);opacity:1} 50%{transform:scale(1.3) rotate(10deg);opacity:0.5} 100%{transform:scale(0) rotate(20deg);opacity:0} }
     #monster-name { font-weight: 700; font-size: 16px; }
     #monster-type-badge { font-size: 10px; padding: 2px 8px; border-radius: 8px; margin-top: -4px; }
     .hp-bar-wrap { width: 180px; height: 12px; background: #1a0a0a; border-radius: 6px; border: 1px solid #5a2020; overflow: hidden; }
@@ -120,6 +122,8 @@
     .btn-primary:hover { background: #c55a2a; }
     .btn-secondary { background: #3d2a14; border: 1px solid #5a3f20; color: #f5e6c8; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; }
     .btn-secondary:hover { background: #5a3f20; }
+    .btn-danger { background: #5a2020; border: 1px solid #ef4444; color: #f5e6c8; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .btn-danger:hover { background: #ef4444; }
 
     /* 换肤弹窗 */
     .skin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
@@ -162,6 +166,13 @@
     .wb-item { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
     .wb-item .wb-name { color: #f5e6c8; }
     .wb-item .wb-hp { color: #ef4444; }
+    #inv-sort { display:flex; gap:4px; margin-top:4px; }
+    .sort-btn { background:#2d1f0f; border:1px solid #5a3f20; color:#a89070; padding:2px 6px; border-radius:4px; font-size:11px; cursor:pointer; }
+    .sort-btn.active { background:#3d2a14; color:#f97c4a; border-color:#f97c4a; }
+    #inv-pager { display:flex; justify-content:center; align-items:center; gap:8px; margin-top:6px; }
+    .pager-btn { background:#3d2a14; border:1px solid #5a3f20; color:#f5e6c8; width:28px; height:24px; border-radius:4px; cursor:pointer; font-size:13px; }
+    .pager-btn:hover { background:#4a3520; }
+    #inv-page-info { font-size:12px; color:#a89070; min-width:40px; text-align:center; }
   </style>
 </head>
 <body>
@@ -232,8 +243,20 @@
     <div class="stat-row"><span class="sl">通关次数</span><span class="sv" id="s-clears">0</span></div>
     <div class="stat-divider"></div>
     <div class="panel-title">🎒 背包</div>
-    <div id="inv-header"><span>已收集</span><span id="inv-count">0/100</span></div>
+    <div id="inv-header">
+      <span>已收集 <span id="inv-count">0/100</span></span>
+      <div id="inv-sort">
+        <button class="sort-btn active" onclick="setInvSort('quality')">品质</button>
+        <button class="sort-btn" onclick="setInvSort('slot')">部位</button>
+        <button class="sort-btn" onclick="setInvSort('level')">等级</button>
+      </div>
+    </div>
     <div id="inv-grid"></div>
+    <div id="inv-pager">
+      <button class="pager-btn" onclick="invPage(-1)">◀</button>
+      <span id="inv-page-info">1/1</span>
+      <button class="pager-btn" onclick="invPage(1)">▶</button>
+    </div>
     <div class="btn-row">
       <button class="btn-sm" onclick="showBestiary()">📖 图鉴</button>
       <button class="btn-sm" onclick="showSkinModal()">🎨 换肤</button>
@@ -538,6 +561,18 @@ function unequipSlot(slot) {
   updateAllUI();
 }
 
+function scrapItem(id) {
+  const idx = G.inventory.findIndex(i => i.id === id);
+  if (idx >= 0) {
+    const item = G.inventory[idx];
+    G.inventory.splice(idx, 1);
+    showToast('分解了 ' + item.name, item.color);
+    closeAllModals();
+    renderInventory();
+    updateAllUI();
+  }
+}
+
 // ─────────────────────────────────────────────────────
 // 9. 角色换肤
 // ─────────────────────────────────────────────────────
@@ -709,7 +744,13 @@ function handleClick(e) {
     currentMonster.hp = 0;
     onMonsterKilled(currentMonster);
     currentMonster = null;
-    setTimeout(() => { decideAndSpawn(); updateMonsterUI(); }, 400);
+    const sprite = document.getElementById('monster-sprite');
+    sprite.classList.add('monster-dying');
+    setTimeout(() => {
+      sprite.classList.remove('monster-dying');
+      decideAndSpawn();
+      updateMonsterUI();
+    }, 500);
   }
 
   updateMonsterUI();
@@ -903,6 +944,7 @@ function showEquipDetail(item) {
       ${item.set ? `<div class="equip-set-tag">⚡ 套装：${item.set.name}（凑齐4件激活光环）</div>` : ''}
       <div class="equip-modal-actions">
         <button class="btn-primary" onclick="equipFromModal('${item.id}')">穿戴</button>
+        <button class="btn-danger" onclick="scrapItem('${item.id}')">分解</button>
         <button class="btn-secondary" onclick="closeAllModals()">关闭</button>
       </div>
     </div>`;
@@ -1111,26 +1153,51 @@ function updateCharUI() {
   document.getElementById('stat-hp').textContent   = totalHp;
 }
 
+let invSortBy = 'quality'; // 'quality' | 'slot' | 'level'
+let invPage = 1;
+const INV_PER_PAGE = 30;
+
+function setInvSort(sort) {
+  invSortBy = sort;
+  invPage = 1;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.sort-btn[onclick*="${sort}"]`).classList.add('active');
+  renderInventory();
+}
+
+function getSortedInventory() {
+  const sorted = [...G.inventory];
+  if (invSortBy === 'quality') {
+    const qOrder = { red:0, orange:1, purple:2, blue:3, green:4 };
+    sorted.sort((a,b) => (qOrder[a.quality]||99) - (qOrder[b.quality]||99));
+  } else if (invSortBy === 'slot') {
+    sorted.sort((a,b) => a.slot.localeCompare(b.slot));
+  } else {
+    sorted.sort((a,b) => b.level - a.level);
+  }
+  return sorted;
+}
+
 function renderInventory() {
   const grid = document.getElementById('inv-grid');
+  if (!grid) return;
+  const sorted = getSortedInventory();
+  const totalPages = Math.max(1, Math.ceil(sorted.length / INV_PER_PAGE));
+  if (invPage > totalPages) invPage = totalPages;
+  const start = (invPage - 1) * INV_PER_PAGE;
+  const page = sorted.slice(start, start + INV_PER_PAGE);
   grid.innerHTML = '';
-  for (const item of G.inventory.slice(0, 30)) { // 最多显示30格
+  for (const item of page) {
     const slot = document.createElement('div');
     slot.className = 'inv-slot';
     slot.style.borderColor = item.color;
-    slot.innerHTML = `<div class="inv-quality-bar" style="background:${item.color}"></div>
-      <div class="inv-icon">${SLOT_ICONS[item.slot] || '📦'}</div>
-      <div class="inv-name">${item.name.length > 4 ? item.name.substr(0,3) : item.name}</div>`;
+    slot.innerHTML = `<div class="inv-quality-bar" style="background:${item.color}"></div><div class="inv-icon">${SLOT_ICONS[item.slot]||'📦'}</div>`;
+    slot.title = item.name;
     slot.onclick = () => showEquipDetail(item);
     grid.appendChild(slot);
   }
-  // 剩余空格
-  for (let i = G.inventory.length; i < 30; i++) {
-    const empty = document.createElement('div');
-    empty.className = 'inv-slot';
-    empty.style.opacity = '0.3';
-    grid.appendChild(empty);
-  }
+  document.getElementById('inv-count').textContent = G.inventory.length + '/100';
+  document.getElementById('inv-page-info').textContent = invPage + '/' + totalPages;
 }
 
 function renderEquipBar() {
