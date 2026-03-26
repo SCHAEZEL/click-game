@@ -23,7 +23,7 @@ jobs:
           path: ./
 
   # ── Tauri 桌面构建 ──
-  build-tauri:
+  build-desktop:
     strategy:
       fail-fast: false
       matrix:
@@ -37,8 +37,10 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Rust
-        uses: dtolnay/rust-action@stable
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          profile: minimal
 
       - name: Install Linux deps
         if: matrix.platform == 'ubuntu-latest'
@@ -51,4 +53,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          owner: SCHAEZEL
+          repo: click-game
           repoPath: ./desktop
