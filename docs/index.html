@@ -1,1425 +1,1081 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>迷宫猎手</title>
-  <style>
-    /* ============================================================
-       迷宫猎手 - 暖黄卡通风 ?       配色：深棕背 ?#1a1008 / #2d1f0f，暖橙强 ?#f97c4a
-       ============================================================ */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    /* ── 手机端适配 ── */
-    /* ── 手机端适配 ── */
-@media (max-width: 768px) {
-  body { overflow-x: hidden; background: #1a1008; }
-
-  /* 顶部：极简进度 ?*/
-  #header {
-    height: 38px; min-height: 38px;
-    padding: 0 8px; gap: 6px;
-    display: flex; align-items: center;
-  }
-  .stage-badge { font-size: 12px; white-space: nowrap; }
-  #progress-wrap { flex: 1; order: 0; height: 14px !important; }
-  .progress-bar { height: 14px; }
-  .header-info { display: none; }
-  #wb-timer { font-size: 10px; border: none; padding: 0; cursor: pointer; }
-  #btn-save { font-size: 10px; padding: 2px 6px; }
-  .wb-info { display: block !important; }
-
-  /* 主布局：纵 ?*/
-  #main {
-    flex-direction: column;
-    height: auto;
-    overflow: visible;
-  }
-
-  /* 角色面板：横向紧凑条 */
-  #char-panel {
-    width: 100%; min-height: unset;
-    flex-direction: row; align-items: center;
-    padding: 5px 10px; gap: 10px;
-    border-right: none; border-bottom: 1px solid #5a3f20;
-    order: -1;
-  }
-  #char-icon { font-size: 30px; cursor: pointer; }
-  .char-name { font-size: 11px; }
-  .char-stats-divider { width: 1px; height: 26px; background: #5a3f20; flex-shrink: 0; }
-  .char-stats { flex-direction: row; gap: 8px; }
-  .char-stat { font-size: 10px; }
-  #active-set { font-size: 9px; }
-
-  /* 游戏主区 */
-  #game-area {
-    min-height: 200px; padding: 8px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-  }
-  #map-path { display: none; }
-  #monster-zone { width: 92%; min-width: unset; padding: 12px; }
-  #monster-sprite { font-size: 60px; }
-  #monsterName { font-size: 15px; }
-  #hp-bar-wrap { width: 180px; }
-  #click-hint { font-size: 12px; }
-
-  /* 统计+背包面板：占满宽 ?*/
-  #stats-panel {
-    width: 100%; min-height: unset;
-    border-left: none; border-top: 2px solid #5a3f20;
-    max-height: none; height: auto;
-    overflow: visible;
-    padding: 8px 10px;
-    display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px;
-    align-items: flex-start;
-  }
-  .stat-divider { display: none; }
-  #stats-panel .panel-title { display: none; }
-
-  /* 快速统 ?*/
-  .stat-row { font-size: 11px; min-width: 65px; flex-shrink: 0; }
-
-  /* 背包：独立一 ?*/
-  #inv-header {
-    width: 100%;
-    font-size: 11px; color: #a89070;
-    display: flex; flex-direction: row; align-items: center; gap: 4px;
-    flex-wrap: wrap;
-  }
-  #inv-header::before { content: '背包'; font-size: 12px; color: #f97c4a; margin-right: 4px; }
-  #inv-sort { display: flex; gap: 3px; }
-  .sort-btn { padding: 1px 5px; font-size: 10px; }
-
-  /* 背包网格：可滚动 */
-  #inv-grid {
-    display: flex; flex-wrap: wrap; gap: 3px;
-    width: 100%;
-    max-height: 120px; overflow-y: auto;
-    grid-template-columns: unset;
-    padding: 2px;
-  }
-  .inv-slot { width: 30px; height: 30px; flex-shrink: 0; }
-  .inv-quality-bar { height: 2px; top: 0; }
-  .inv-icon { font-size: 14px; }
-  #inv-pager { width: 100%; margin-top: 4px; }
-  .pager-btn { width: 24px; height: 22px; font-size: 11px; }
-  #inv-page-info { font-size: 11px; }
-
-  /* 装备栏：横向滚动 */
-  #equip-bar {
-    height: auto; min-height: 62px;
-    flex-wrap: nowrap; overflow-x: auto;
-    padding: 5px 8px; gap: 4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .equip-slot { width: 54px; height: 54px; flex-shrink: 0; }
-  .slot-icon { font-size: 22px; }
-  .slot-name { font-size: 8px; }
-
-  /* 弹窗 */
-  .modal-content { width: 96%; max-width: 96%; padding: 14px; border-radius: 12px; }
-  .equip-modal-name { font-size: 17px; }
-  .equip-modal-stats { gap: 4px; }
-  .equip-modal-actions { flex-wrap: wrap; }
-  .btn-primary, .btn-danger, .btn-secondary { flex: 1; min-width: 60px; font-size: 13px; padding: 6px 8px; }
-
-  /* 世界BOSS面板 */
-  #wb-panel { width: 96%; max-width: 96%; }
-
-  /* 伤害数字 */
-  .dmg-num { font-size: 18px; }
-  .dmg-num.crit { font-size: 22px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>迷宫猎手</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#1a1008;
+  --panel:#2d1f0f;
+  --accent:#f97c4a;
+  --border:#5a3f20;
+  --text:#f5e6c8;
+  --green:#4ade80;--blue:#60a5fa;--purple:#a855f7;--orange:#f97316;--red:#ef4444;
 }
-
-@media (max-width: 480px) {
-  #monster-sprite { font-size: 50px; }
-  .equip-slot { width: 48px; height: 48px; }
-  .slot-icon { font-size: 18px; }
-  .inv-slot { width: 28px; height: 28px; }
-  .inv-icon { font-size: 12px; }
-  #char-icon { font-size: 26px; }
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px}
+#header{background:var(--panel);border-bottom:2px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.stage-tag{color:var(--accent);font-weight:700;font-size:15px;white-space:nowrap}
+.progress-wrap{flex:1;min-width:120px;height:18px;background:#3d2a14;border-radius:9px;overflow:hidden;position:relative}
+.progress-fill{height:100%;background:linear-gradient(90deg,#c55a2a,var(--accent));transition:width .3s}
+.progress-step{position:absolute;top:0;bottom:0;width:2px;background:rgba(245,230,200,0.15)}
+.map-info{font-size:12px;color:#a89070;white-space:nowrap}
+#wb-countdown{font-size:12px;color:#c084fc;white-space:nowrap}
+#main{display:flex;height:calc(100vh - 90px - 50px)}
+#char-panel{width:170px;min-width:170px;background:var(--panel);border-right:2px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 8px;gap:6px}
+#char-icon{font-size:60px;line-height:1}
+.char-name{font-size:12px;color:#a89070;text-align:center}
+#char-atk-display{font-size:13px;color:var(--accent)}
+#char-crit-display{font-size:13px;color:var(--accent)}
+#game-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;cursor:pointer;position:relative;background:radial-gradient(ellipse at center,var(--panel),var(--bg));user-select:none}
+#monster-zone{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 24px;background:rgba(61,42,20,0.8);border-radius:16px;border:2px solid var(--border);min-width:280px}
+#monster-sprite{font-size:72px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));transition:transform .1s}
+#monster-sprite.hit{animation:shake .15s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px) scale(.9)}75%{transform:translateX(8px) scale(.9)}}
+#monster-name{font-weight:700;font-size:16px}
+#monster-type{font-size:12px;color:#a89070}
+.hp-wrap{width:200px;height:14px;background:#1a0a0a;border-radius:7px;border:1px solid #5a2020;overflow:hidden}
+.hp-bar{height:100%;background:linear-gradient(90deg,#ef4444,#ff6b6b);border-radius:7px;transition:width .2s}
+#hp-text{font-size:12px;color:#a89070}
+#click-hint{font-size:13px;color:#a89070;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+#dmg-layer{position:fixed;inset:0;pointer-events:none;z-index:999}
+.dmg-num{position:absolute;font-weight:900;font-size:24px;color:#ff4444;text-shadow:0 2px 4px rgba(0,0,0,.8);animation:floatUp .8s ease forwards}
+.dmg-num.crit{color:#ffd700;font-size:30px}
+@keyframes floatUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-70px);opacity:0}}
+#click-effect{position:absolute;font-size:24px;animation:popFade .4s ease;pointer-events:none}
+@keyframes popFade{0%{transform:scale(.5);opacity:1}100%{transform:scale(1.5) translateY(-30px);opacity:0}}
+#drop-msg{position:absolute;bottom:20px;font-size:14px;color:var(--accent);font-weight:700;opacity:0;transition:opacity .3s}
+#stats-panel{width:220px;min-width:220px;background:var(--panel);border-left:2px solid var(--border);padding:10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+.stats-title{color:var(--accent);font-size:13px;font-weight:700;margin-bottom:4px}
+.stat-row{display:flex;justify-content:space-between;font-size:12px}
+.stat-row span:first-child{color:#a89070}
+.stats-divider{height:1px;background:var(--border);margin:4px 0}
+.btn{display:block;width:100%;padding:6px 10px;background:#3d2a14;border:1px solid var(--border);color:var(--text);border-radius:6px;cursor:pointer;font-size:12px;text-align:left}
+.btn:hover{background:#5a3f20}
+#equip-bar{height:50px;background:var(--panel);border-top:2px solid var(--border);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 8px;flex-wrap:nowrap;overflow-x:auto}
+.equip-slot{width:72px;height:44px;min-width:72px;background:#3d2a14;border:2px solid var(--border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;cursor:pointer;flex-shrink:0;transition:border-color .2s}
+.equip-slot:hover{border-color:var(--accent)}
+.equip-slot.filled{border-color:currentColor}
+.slot-icon{font-size:20px;line-height:1}
+.slot-label{font-size:8px;color:#a89070;margin-top:1px}
+/* Modal */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center}
+#modal-overlay.active{display:flex}
+#modal{background:var(--panel);border:2px solid var(--border);border-radius:12px;padding:20px;max-width:90vw;max-height:80vh;overflow-y:auto;min-width:300px}
+.modal-title{color:var(--accent);font-size:16px;font-weight:700;margin-bottom:12px;text-align:center}
+.modal-close{float:right;background:none;border:none;color:var(--text);font-size:18px;cursor:pointer}
+/* Inventory */
+#inv-modal .inv-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:8px}
+.inv-slot{width:42px;height:42px;background:#3d2a14;border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;position:relative}
+.inv-slot:hover{border-color:var(--accent)}
+.inv-slot .eq-quality{position:absolute;bottom:1px;right:2px;font-size:8px;font-weight:700}
+.inv-page{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.inv-page button{background:#3d2a14;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:4px;cursor:pointer}
+.inv-sort{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+.inv-sort button{padding:3px 8px;font-size:11px}
+/* Equip detail */
+#eq-detail{text-align:center}
+#eq-detail .eq-icon{font-size:64px;margin:8px 0}
+#eq-detail .eq-name{font-size:18px;font-weight:700;margin-bottom:8px}
+.eq-stats{text-align:left;margin:8px 0}
+.eq-stat{display:flex;justify-content:space-between;padding:2px 0;font-size:13px}
+.eq-stat span:first-child{color:#a89070}
+.eq-sets{margin-top:8px;font-size:12px;color:#a89070}
+#eq-actions{display:flex;gap:8px;justify-content:center;margin-top:12px}
+#eq-actions button{padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700}
+#btn-equip{background:var(--accent);color:#fff}
+#btn-disasm{background:#3d2a14;color:#a89070;border:1px solid var(--border)}
+/* Skins */
+#skins-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.skin-card{background:#3d2a14;border:2px solid var(--border);border-radius:8px;padding:8px;text-align:center;cursor:pointer;transition:border-color .2s}
+.skin-card:hover{border-color:var(--accent)}
+.skin-card.owned{border-color:var(--green)}
+.skin-card.active{border-color:var(--accent);background:#4a3010}
+.skin-card .skin-icon{font-size:40px}
+.skin-card .skin-name{font-size:11px;margin-top:4px}
+.skin-card .skin-frags{font-size:10px;color:#a89070}
+.skin-card .skin-lock{font-size:10px;color:#666}
+.skin-card.owned .skin-lock{display:none}
+/* World boss */
+#wb-panel{background:#3d2a14;border:2px solid var(--purple);border-radius:10px;padding:10px;margin-top:8px}
+.wb-title{color:var(--purple);font-size:12px;font-weight:700}
+.wb-entry{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12px}
+.wb-entry .wb-name{font-size:28px}
+.wb-entry .wb-hp-wrap{width:100px;height:8px;background:#1a0a0a;border-radius:4px;overflow:hidden}
+.wb-entry .wb-hp-bar{height:100%;background:var(--purple);transition:width .2s}
+.wb-entry .wb-hp-text{font-size:11px;color:#a89070}
+.wb-btn{padding:4px 10px;background:var(--purple);border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:11px}
+.wb-btn:disabled{background:#555;cursor:not-allowed}
+/* Toast */
+#toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:rgba(45,31,15,.95);border:1px solid var(--border);padding:8px 20px;border-radius:20px;font-size:13px;z-index:900;display:none;white-space:nowrap}
+/* World boss damage layer */
+#wb-dmg-layer{position:fixed;inset:0;pointer-events:none;z-index:998}
+/* Responsive */
+@media(max-width:768px){
+  #main{flex-direction:column;height:auto}
+  #char-panel{width:100%;min-width:unset;flex-direction:row;flex-wrap:wrap;padding:8px;border-right:none;border-bottom:2px solid var(--border)}
+  #char-icon{font-size:48px}
+  #stats-panel{width:100%;min-width:unset;border-left:none;border-top:2px solid var(--border)}
+  #equip-bar{height:auto;flex-wrap:wrap;padding:4px}
+  .equip-slot{width:60px;height:40px;min-width:60px}
+  .slot-icon{font-size:18px}
+  #monster-zone{min-width:unset;width:90%}
+  #monster-sprite{font-size:56px}
+  #inv-modal .inv-grid{grid-template-columns:repeat(5,1fr)}
+  #skins-grid{grid-template-columns:repeat(3,1fr)}
 }
-      #monster-sprite { font-size: 48px; }
-      .equip-slot { width: 48px; height: 48px; }
-      .slot-icon { font-size: 20px; }
-      #inv-grid { grid-template-columns: repeat(6, 1fr); }
-    }
-
-    body { font-family: 'Segoe UI', sans-serif; background: #1a1008; color: #f5e6c8; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-    /* ── 顶部 ?── */
-    #header { background: #2d1f0f; border-bottom: 2px solid #5a3f20; padding: 8px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-    .stage-badge { background: #5a3f20; padding: 4px 12px; border-radius: 12px; font-size: 13px; }
-    .stage-badge span { color: #f97c4a; font-weight: 700; }
-    .progress-bar { flex: 1; height: 18px; background: #3d2a14; border-radius: 9px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #c55a2a, #f97c4a); border-radius: 9px; transition: width 0.3s; }
-    .header-info { font-size: 12px; color: #a89070; white-space: nowrap; }
-    .header-info span { color: #f97c4a; }
-    #wb-timer { font-size: 12px; color: #c084fc; cursor: pointer; white-space: nowrap; }
-    #btn-save { background: #3d2a14; border: 1px solid #5a3f20; color: #f5e6c8; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-
-    /* ── 主游戏区 ── */
-    #main { flex: 1; display: flex; overflow: hidden; }
-
-    /* ── 左侧角色面板 ── */
-    #char-panel { width: 160px; background: #2d1f0f; border-right: 2px solid #5a3f20; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; gap: 6px; flex-shrink: 0; }
-    #char-icon { font-size: 52px; cursor: pointer; transition: transform 0.2s; }
-    #char-icon:hover { transform: scale(1.1); }
-    .char-name { font-size: 11px; color: #a89070; text-align: center; }
-    .char-stats { font-size: 12px; width: 100%; }
-    .char-stat { display: flex; justify-content: space-between; padding: 2px 4px; }
-    .char-stat .label { color: #a89070; }
-    .char-stat .val { color: #f97c4a; font-weight: 600; }
-    .char-stats-divider { border-top: 1px solid #5a3f20; margin: 4px 0; }
-    #active-set { font-size: 10px; color: #a855f7; text-align: center; min-height: 14px; }
-
-    /* ── 中间游戏 ?── */
-    #game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; cursor: pointer; position: relative; background: radial-gradient(ellipse at center, #2d1f0f 0%, #1a1008 100%); }
-    #map-path { display: flex; align-items: center; gap: 0; margin-bottom: 8px; }
-    .map-node { width: 12px; height: 12px; background: #3d2a14; border: 1px solid #5a3f20; border-radius: 50%; transition: all 0.3s; }
-    .map-node.visited { background: #5a3f20; border-color: #f97c4a; }
-    .map-node.active { background: #f97c4a; border-color: #ffd700; box-shadow: 0 0 6px #f97c4a; }
-    .map-node.boss-node { width: 16px; height: 16px; background: #5a2020; border: 2px solid #ef4444; }
-    .map-node.boss-node.visited { background: #ef4444; }
-    .map-line { width: 14px; height: 2px; background: #5a3f20; }
-    #monster-zone { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 28px; background: #3d2a14; border-radius: 16px; border: 2px solid #5a3f20; min-width: 280px; position: relative; }
-    #monster-sprite { font-size: 72px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.1s; user-select: none; }
-    #monster-sprite.hit { animation: shake 0.15s; }
-    #monster-sprite.pulse { animation: pulse 1s infinite; }
-    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px) scale(0.9)} 75%{transform:translateX(8px) scale(0.9)} }
-    @keyframes pulse { 0%,100%{filter:drop-shadow(0 0 8px #a855f7)} 50%{filter:drop-shadow(0 0 20px #a855f7)} }
-    .monster-dying { animation: monsterDie 0.5s ease forwards; }
-    @keyframes monsterDie { 0%{transform:scale(1);opacity:1} 50%{transform:scale(1.3) rotate(10deg);opacity:0.5} 100%{transform:scale(0) rotate(20deg);opacity:0} }
-    #monster-name { font-weight: 700; font-size: 16px; }
-    #monster-type-badge { font-size: 10px; padding: 2px 8px; border-radius: 8px; margin-top: -4px; }
-    .hp-bar-wrap { width: 180px; height: 12px; background: #1a0a0a; border-radius: 6px; border: 1px solid #5a2020; overflow: hidden; }
-    .hp-bar { height: 100%; background: linear-gradient(90deg, #ef4444, #ff6b6b); border-radius: 6px; transition: width 0.2s; }
-    #hp-text { font-size: 12px; color: #a89070; }
-    #click-hint { font-size: 13px; color: #a89070; animation: pulse2 2s infinite; }
-    @keyframes pulse2 { 0%,100%{opacity:0.5} 50%{opacity:1} }
-
-    /* ── 右侧属性面 ?── */
-    #stats-panel { width: 230px; background: #2d1f0f; border-left: 2px solid #5a3f20; padding: 12px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex-shrink: 0; }
-    .panel-title { color: #f97c4a; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-    .stat-row { display: flex; justify-content: space-between; font-size: 12px; }
-    .stat-row .sl { color: #a89070; }
-    .stat-row .sv { color: #f5e6c8; }
-    .stat-divider { border-top: 1px solid #5a3f20; margin: 4px 0; }
-    #inv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-    .inv-slot { width: 36px; height: 36px; background: #3d2a14; border: 1px solid #5a3f20; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.2s, transform 0.2s; position: relative; overflow: hidden; }
-    .inv-slot:hover { border-color: #f97c4a; transform: scale(1.05); }
-    .inv-slot .inv-quality-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
-    .inv-slot .inv-name { font-size: 8px; color: #f5e6c8; text-align: center; line-height: 1; margin-top: 1px; overflow: hidden; white-space: nowrap; }
-    .inv-slot .inv-icon { font-size: 14px; }
-    #inv-header { display: flex; justify-content: space-between; font-size: 11px; color: #a89070; margin-top: 4px; }
-    .btn-sm { padding: 5px 10px; background: #3d2a14; border: 1px solid #5a3f20; color: #f5e6c8; border-radius: 6px; cursor: pointer; font-size: 11px; transition: background 0.2s; }
-    .btn-sm:hover { background: #5a3f20; }
-    .btn-row { display: flex; gap: 6px; margin-top: 4px; }
-
-    /* ── 底部装备 ?── */
-    #equip-bar { height: 86px; background: #2d1f0f; border-top: 2px solid #5a3f20; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; padding: 0 8px; }
-    .equip-slot { width: 68px; height: 68px; background: #3d2a14; border: 2px solid #5a3f20; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; transition: border-color 0.2s, transform 0.2s; position: relative; overflow: hidden; }
-    .equip-slot:hover { border-color: #f97c4a; transform: scale(1.05); }
-    .equip-slot .slot-icon { font-size: 24px; }
-    .equip-slot .slot-name { font-size: 8px; color: #a89070; }
-    .equip-slot .slot-quality-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
-
-    /* ── 伤害飘字 ── */
-    #dmg-layer { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
-    .dmg-num { position: absolute; font-weight: 900; font-size: 22px; color: #ff4444; text-shadow: 0 2px 4px rgba(0,0,0,0.8); animation: floatUp 0.8s ease forwards; }
-    .dmg-num.crit { color: #ffd700; font-size: 28px; }
-    .dmg-num.wb { color: #c084fc; font-size: 26px; }
-    @keyframes floatUp { 0%{transform:translateY(0);opacity:1} 100%{transform:translateY(-70px);opacity:0} }
-
-    /* ── Toast 提示 ── */
-    .toast { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); background: rgba(45,31,15,0.95); border: 1px solid #5a3f20; padding: 8px 20px; border-radius: 20px; font-size: 13px; z-index: 900; transition: opacity 0.3s; }
-
-    /* ── 弹窗 ── */
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
-    .modal.show { display: flex; }
-    .modal-content { background: #2d1f0f; border: 2px solid #5a3f20; border-radius: 16px; padding: 24px; min-width: 340px; max-width: 480px; max-height: 80vh; overflow-y: auto; position: relative; animation: modalIn 0.25s ease; }
-    @keyframes modalIn { 0%{transform:scale(0.85);opacity:0} 100%{transform:scale(1);opacity:1} }
-    .modal-close { position: absolute; top: 10px; right: 14px; background: none; border: none; color: #a89070; font-size: 20px; cursor: pointer; }
-    .modal-close:hover { color: #f5e6c8; }
-    .modal-title { color: #f97c4a; font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; }
-
-    /* 装备详情弹窗 */
-    .equip-modal-header { text-align: center; margin-bottom: 12px; }
-    .equip-modal-name { font-size: 20px; font-weight: 700; }
-    .equip-modal-meta { font-size: 12px; color: #a89070; margin-top: 4px; }
-    .equip-modal-stats { margin: 12px 0; }
-    .equip-stat-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px solid #3d2a14; }
-    .equip-stat-row .k { color: #a89070; }
-    .equip-stat-row .v { color: #4ade80; font-weight: 600; }
-    .equip-set-tag { background: #3d2a14; border: 1px solid #a855f7; border-radius: 8px; padding: 6px 12px; font-size: 12px; color: #a855f7; text-align: center; margin: 8px 0; }
-    .equip-modal-actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
-    .btn-primary { background: #f97c4a; border: none; color: #fff; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
-    .btn-primary:hover { background: #c55a2a; }
-    .btn-secondary { background: #3d2a14; border: 1px solid #5a3f20; color: #f5e6c8; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; }
-    .btn-secondary:hover { background: #5a3f20; }
-    .btn-danger { background: #5a2020; border: 1px solid #ef4444; color: #f5e6c8; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; }
-    .btn-danger:hover { background: #ef4444; }
-
-    /* 换肤弹窗 */
-    .skin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
-    .skin-card { background: #3d2a14; border: 2px solid #5a3f20; border-radius: 10px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s; }
-    .skin-card:hover { border-color: #f97c4a; }
-    .skin-card.active { border-color: #f97c4a; background: #5a3f20; }
-    .skin-card.locked { opacity: 0.5; cursor: not-allowed; }
-    .skin-card .skin-emoji { font-size: 28px; }
-    .skin-card .skin-name { font-size: 10px; color: #a89070; }
-    .skin-card .skin-lock { font-size: 12px; }
-    .skin-section { margin-bottom: 16px; }
-    .skin-section-title { font-size: 12px; color: #a89070; margin-bottom: 8px; }
-
-    /* 怪物图鉴弹窗 */
-    .guide-list { display: flex; flex-direction: column; gap: 10px; }
-    .guide-item { background: #3d2a14; border-radius: 10px; padding: 10px 14px; border-left: 4px solid; }
-    .guide-item .gi-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-    .guide-item .gi-desc { font-size: 12px; color: #a89070; }
-
-    /* 掉落动画 */
-    .drop-anim { position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(45,31,15,0.95); border: 2px solid; border-radius: 12px; padding: 12px 24px; text-align: center; z-index: 1100; animation: dropPop 0.3s ease, dropFade 0.3s ease 1.7s forwards; pointer-events: none; }
-    @keyframes dropPop { 0%{transform:translateX(-50%) scale(0.5)} 100%{transform:translateX(-50%) scale(1)} }
-    @keyframes dropFade { 0%{opacity:1} 100%{opacity:0} }
-    .drop-anim .da-name { font-size: 16px; font-weight: 700; }
-    .drop-anim .da-quality { font-size: 12px; }
-    .drop-anim .da-slot { font-size: 11px; color: #a89070; }
-
-    /* 套装激活动 ?*/
-    .set-anim { position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(90,30,120,0.95); border: 2px solid #a855f7; border-radius: 12px; padding: 16px 32px; text-align: center; z-index: 1100; animation: setPop 0.3s ease, setFade 0.5s ease 2.5s forwards; pointer-events: none; }
-    @keyframes setPop { 0%{transform:translateX(-50%) scale(0.5)} 100%{transform:translateX(-50%) scale(1)} }
-    @keyframes setFade { 0%{opacity:1} 100%{opacity:0} }
-    .set-anim .sa-title { color: #a855f7; font-size: 12px; }
-    .set-anim .sa-name { color: #f5e6c8; font-size: 18px; font-weight: 700; }
-    .set-anim .sa-stats { color: #4ade80; font-size: 12px; margin-top: 4px; }
-
-    /* 世界BOSS面板 */
-    #wb-panel { position: fixed; top: 60px; right: 10px; background: rgba(45,31,15,0.95); border: 2px solid #a855f7; border-radius: 12px; padding: 12px 16px; z-index: 800; display: none; min-width: 200px; }
-    #wb-panel.show { display: block; }
-    .wb-title { color: #a855f7; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
-    .wb-item { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
-    .wb-item .wb-name { color: #f5e6c8; }
-    .wb-item .wb-hp { color: #ef4444; }
-    #inv-sort { display:flex; gap:4px; margin-top:4px; }
-    .sort-btn { background:#2d1f0f; border:1px solid #5a3f20; color:#a89070; padding:2px 6px; border-radius:4px; font-size:11px; cursor:pointer; }
-    .sort-btn.active { background:#3d2a14; color:#f97c4a; border-color:#f97c4a; }
-    #inv-pager { display:flex; justify-content:center; align-items:center; gap:8px; margin-top:6px; }
-    .pager-btn { background:#3d2a14; border:1px solid #5a3f20; color:#f5e6c8; width:28px; height:24px; border-radius:4px; cursor:pointer; font-size:13px; }
-    .pager-btn:hover { background:#4a3520; }
-    #inv-page-info { font-size:12px; color:#a89070; min-width:40px; text-align:center; }
-    .btn-danger-sm { background: #8b0000; border: 1px solid #5a3f20; color: #fff; border-radius: 4px; cursor: pointer; }
-    .btn-danger-sm:hover { filter: brightness(1.2); }
-  </style>
+@media(max-width:480px){
+  #header{flex-wrap:wrap;gap:6px}
+  .progress-wrap{min-width:80px}
+  .equip-slot{width:52px;height:36px;min-width:52px}
+  .slot-icon{font-size:16px}
+  .slot-label{font-size:7px}
+  #skins-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════
-     顶部 ?     ══════════════════════════════════════════════════ -->
 <div id="header">
-  <div class="stage-badge"> ?<span id="stage-num">1</span>  ?/div>
-  <div id="progress-wrap"><div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div>
-  <div class="header-info">怪物: <span id="kill-count">0</span>/20</div>
-  <div id="wb-timer" class="wb-info" onclick="toggleWbPanel()">世界BOSS: --:--:--</div>
-  <button id="btn-save" onclick="doSave()">💾 存档</button>
+  <div class="stage-tag">第 <span id="stage-num">1</span> 关</div>
+  <div class="progress-wrap" id="map-progress">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+  <div class="map-info">进度: <span id="kill-count">0</span>/21</div>
+  <div id="wb-countdown">世界BOSS: --:--:--</div>
 </div>
 
-<!-- 世界BOSS详情面板 -->
-<div id="wb-panel">
-  <div class="wb-title">🐉 世界BOSS</div>
-  <div id="wb-list"></div>
-  <div style="font-size:11px;color:#a89070;margin-top:8px">点击世界BOSS图标进入战斗</div>
-</div>
-
-<!-- ══════════════════════════════════════════════════
-     主游戏区
-     ══════════════════════════════════════════════════ -->
 <div id="main">
-
-  <!-- 左侧角色面板 -->
   <div id="char-panel">
-    <div id="char-icon" onclick="showSkinModal()">🐕⚔️</div>
-    <div class="char-name" id="char-label"> ?· 剑士</div>
-    <div class="char-stats-divider"></div>
-    <div class="char-stats">
-      <div class="char-stat"><span class="label">攻击</span><span class="val" id="stat-atk">10</span></div>
-      <div class="char-stat"><span class="label">暴击</span><span class="val" id="stat-crit">5%</span></div>
-      <div class="char-stat"><span class="label">防御</span><span class="val" id="stat-def">0</span></div>
-      <div class="char-stat"><span class="label">生命</span><span class="val" id="stat-hp">100</span></div>
+    <div id="char-icon">🐕</div>
+    <div class="char-name" id="char-label">狗 · 剑士</div>
+    <div id="char-atk-display">攻击: <span id="char-atk">10</span></div>
+    <div id="char-crit-display">暴击: <span id="char-crit">5</span>%</div>
+    <button class="btn" onclick="showSkinsModal()" style="margin-top:4px">换皮肤</button>
+    <div id="wb-panel" style="display:none">
+      <div class="wb-title">世界BOSS</div>
+      <div id="wb-list"></div>
     </div>
-    <div class="char-stats-divider"></div>
-    <div id="active-set"></div>
-    <div class="char-stats-divider"></div>
-    <div style="font-size:10px;color:#a89070;text-align:center">点击头像换肤</div>
   </div>
 
-  <!-- 中间游戏 ?-->
   <div id="game-area" onclick="handleClick(event)">
-    <!-- 地图路径 -->
-    <div id="map-path"></div>
-
-    <!-- 怪物区域 -->
     <div id="monster-zone">
-      <div id="monster-sprite">🐀</div>
-      <div id="monster-name">哥布 ?· Lv.1</div>
-      <div id="monster-type-badge" style="background:#3d2a14;color:#9ca3af">普 ?/div>
-      <div class="hp-bar-wrap"><div class="hp-bar" id="hp-bar" style="width:100%"></div></div>
-      <div id="hp-text">50 / 50</div>
+      <div id="monster-sprite">&#x1F400;</div>
+      <div id="monster-name">小怪 · Lv.1</div>
+      <div id="monster-type" style="font-size:12px;color:#a89070"></div>
+      <div class="hp-wrap"><div class="hp-bar" id="hp-bar"></div></div>
+      <div id="hp-text">10 / 10</div>
     </div>
-
-    <div id="click-hint">点击攻击 · 空格 ?点击均有 ?/div>
+    <div id="click-hint">点击或按任意键攻击！</div>
+    <div id="drop-msg"></div>
   </div>
 
-  <!-- 右侧统计面板 -->
   <div id="stats-panel">
-    <div class="panel-title">📊 战斗统计</div>
-    <div class="stat-row"><span class="sl">点击次数</span><span class="sv" id="s-clicks">0</span></div>
-    <div class="stat-row"><span class="sl">攻击伤害</span><span class="sv" id="s-damage">0</span></div>
-    <div class="stat-row"><span class="sl">击杀小 ?/span><span class="sv" id="s-kills">0</span></div>
-    <div class="stat-row"><span class="sl">通关次数</span><span class="sv" id="s-clears">0</span></div>
-    <div class="stat-divider"></div>
-    <div class="panel-title">🎒 背包</div>
-    <div id="inv-header">
-      <span>已收 ?<span id="inv-count">0/100</span></span>
-      <div id="inv-sort">
-        <button class="sort-btn active" onclick="setInvSort('quality')">品质</button>
-        <button class="sort-btn" onclick="setInvSort('slot')">部位</button>
-        <button class="sort-btn" onclick="setInvSort('level')">等级</button>
-      </div>
-    </div>
-    <div id="inv-grid"></div>
-    <div id="inv-pager">
-      <button class="pager-btn" onclick="invPage(-1)">◀</button>
-      <span id="inv-page-info">1/1</span>
-      <button class="pager-btn" onclick="invPage(1)"> ?/button>
-      <button class="btn-danger-sm" onclick="scrapAll()" style="font-size:11px;padding:2px 8px;background:#8b0000;border:1px solid #5a3f20;color:#fff;border-radius:4px;cursor:pointer">一键分解</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn-sm" onclick="showBestiary()">📖 图鉴</button>
-      <button class="btn-sm" onclick="showSkinModal()">🎨 换肤</button>
-    </div>
+    <div class="stats-title">战斗统计</div>
+    <div class="stat-row"><span>总击杀</span><span id="stat-kills">0</span></div>
+    <div class="stat-row"><span>通关次数</span><span id="stat-clears">0</span></div>
+    <div class="stat-row"><span>装备掉落</span><span id="stat-drops">0</span></div>
+    <div class="stat-row"><span>碎片获得</span><span id="stat-frags">0</span></div>
+    <div class="stat-row"><span>分解装备</span><span id="stat-disasm">0</span></div>
+    <div class="stats-divider"></div>
+    <div class="stat-row"><span>攻击</span><span id="stat-atk">10</span></div>
+    <div class="stat-row"><span>暴击率</span><span id="stat-crit">5%</span></div>
+    <div class="stat-row"><span>速度</span><span id="stat-spd">1.0x</span></div>
+    <div class="stat-row"><span>套装加成</span><span id="stat-set">无</span></div>
+    <div class="stats-divider"></div>
+    <button class="btn" onclick="showInvModal()">背包 (<span id="inv-count">0</span>/1000)</button>
+    <button class="btn" onclick="disasmAll()">一键分解</button>
+    <button class="btn" onclick="showBestiary()">怪物图鉴</button>
+    <button class="btn" onclick="saveGame()">保存游戏</button>
+    <button class="btn" onclick="resetGame()">重置游戏</button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     底部装备栏（9个部位：武器/头盔/胸甲/护腿/手套/戒指×2/耳环×2 ?     ══════════════════════════════════════════════════ -->
 <div id="equip-bar">
-  <div class="equip-slot" data-slot="weapon" onclick="clickEquipSlot('weapon')"><div class="slot-icon">⚔️</div><div class="slot-name">武器</div></div>
-  <div class="equip-slot" data-slot="helmet" onclick="clickEquipSlot('helmet')"><div class="slot-icon">🪖</div><div class="slot-name">头盔</div></div>
-  <div class="equip-slot" data-slot="chest" onclick="clickEquipSlot('chest')"><div class="slot-icon">🦺</div><div class="slot-name">胸甲</div></div>
-  <div class="equip-slot" data-slot="legs" onclick="clickEquipSlot('legs')"><div class="slot-icon">👖</div><div class="slot-name">护腿</div></div>
-  <div class="equip-slot" data-slot="gloves" onclick="clickEquipSlot('gloves')"><div class="slot-icon">🧤</div><div class="slot-name">手套</div></div>
-  <div class="equip-slot" data-slot="ring1" onclick="clickEquipSlot('ring1')"><div class="slot-icon">💍</div><div class="slot-name">戒指</div></div>
-  <div class="equip-slot" data-slot="ring2" onclick="clickEquipSlot('ring2')"><div class="slot-icon">💍</div><div class="slot-name">戒指</div></div>
-  <div class="equip-slot" data-slot="earring1" onclick="clickEquipSlot('earring1')"><div class="slot-icon">📿</div><div class="slot-name">耳环</div></div>
-  <div class="equip-slot" data-slot="earring2" onclick="clickEquipSlot('earring2')"><div class="slot-icon">📿</div><div class="slot-name">耳环</div></div>
+  <div class="equip-slot" data-slot="weapon" onclick="onEquipSlotClick('weapon')"><div class="slot-icon">&#x2694;</div><div class="slot-label">武器</div></div>
+  <div class="equip-slot" data-slot="helmet" onclick="onEquipSlotClick('helmet')"><div class="slot-icon">&#x1F6D6;</div><div class="slot-label">头盔</div></div>
+  <div class="equip-slot" data-slot="chest" onclick="onEquipSlotClick('chest')"><div class="slot-icon">&#x1F9BA;</div><div class="slot-label">胸甲</div></div>
+  <div class="equip-slot" data-slot="legs" onclick="onEquipSlotClick('legs')"><div class="slot-icon">&#x1F456;</div><div class="slot-label">护腿</div></div>
+  <div class="equip-slot" data-slot="gloves" onclick="onEquipSlotClick('gloves')"><div class="slot-icon">&#x1F9A4;</div><div class="slot-label">手套</div></div>
+  <div class="equip-slot" data-slot="ring1" onclick="onEquipSlotClick('ring1')"><div class="slot-icon">&#x1F48D;</div><div class="slot-label">戒指</div></div>
+  <div class="equip-slot" data-slot="ring2" onclick="onEquipSlotClick('ring2')"><div class="slot-icon">&#x1F48D;</div><div class="slot-label">戒指</div></div>
+  <div class="equip-slot" data-slot="earring1" onclick="onEquipSlotClick('earring1')"><div class="slot-icon">&#x1F4FF;</div><div class="slot-label">耳环</div></div>
+  <div class="equip-slot" data-slot="earring2" onclick="onEquipSlotClick('earring2')"><div class="slot-icon">&#x1F4FF;</div><div class="slot-label">耳环</div></div>
 </div>
 
-<!-- 伤害数字 ?-->
 <div id="dmg-layer"></div>
+<div id="wb-dmg-layer"></div>
+<div id="toast"></div>
+
+<!-- Inventory Modal -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
 
 <script>
-/* ══════════════════════════════════════════════════════════ ?   迷宫猎手 - 完整游戏版本
-   单文 ?HTML，所 ?JS/CSS 内联
-   参 ?modules/ 下各模块实现
-   ══════════════════════════════════════════════════════════ ?*/
-
-// ─────────────────────────────────────────────────────
-// 1. 常量配置
-// ─────────────────────────────────────────────────────
-const QUALITY_COLORS = { green:'#4ade80',blue:'#60a5fa',purple:'#a855f7',orange:'#f97316',red:'#ef4444' };
-const QUALITY_NAMES  = { green:'优秀',blue:'精良',purple:'史诗',orange:'传说',red:'神话' };
-const DROP_RATES     = [0.60, 0.25, 0.13, 0.015, 0.005];
-const QUALITY_KEYS   = ['green','blue','purple','orange','red'];
-
-const EQUIP_SLOTS = ['weapon','helmet','chest','legs','gloves','ring1','ring2','earring1','earring2'];
-const SLOT_NAMES  = { weapon:'武器',helmet:'头盔',chest:'胸甲',legs:'护腿',gloves:'手套',ring1:'戒指',ring2:'戒指',earring1:'耳环',earring2:'耳环' };
-const SLOT_ICONS  = { weapon:'⚔️',helmet:'🪖',chest:'🦺',legs:'👖',gloves:'🧤',ring1:'💍',ring2:'💍',earring1:'📿',earring2:'📿' };
-
-const ANIMALS     = ['dog','cat','rabbit','bird'];
-const ANIMAL_EMOJI = { dog:'🐕',cat:'🐱',rabbit:'🐰',bird:'🐦' };
-const ANIMAL_CN   = { dog:' ?,cat:' ?,rabbit:'兔子',bird:' ? };
-const PROFESSIONS = ['warrior','archer','mage','rogue'];
-const PROF_EMOJI  = { warrior:'⚔️',archer:'🏹',mage:'🔮',rogue:'🗡 ? };
-const PROF_CN     = { warrior:'剑士',archer:'弓手',mage:'法师',rogue:'盗贼' };
-
-/* 套装系统：每职业3套，凑齐4件触发光 ?   套装由怪物掉落时随机赋予（20%概率 ?*/
-const SET_BONUSES = {
-  warrior: {
-    berserker: { name:'狂暴光环', stats:{ atk:50 },   count:4 },
-    guardian:  { name:'守护光环', stats:{ def:30 },   count:4 },
-    destroyer: { name:'毁灭光环', stats:{ crit:20 },  count:4 }
-  },
-  archer: {
-    windshot: { name:'疾风光环', stats:{ atk:40,spd:10 }, count:4 },
-    forest:   { name:'森林光环', stats:{ def:25 },        count:4 },
-    eagle:    { name:'苍鹰光环', stats:{ crit:25 },        count:4 }
-  },
-  mage: {
-    arcane:   { name:'奥术光环', stats:{ atk:60 },        count:4 },
-    ice:      { name:'冰霜光环', stats:{ def:20,spd:15 }, count:4 },
-    inferno:  { name:'烈焰光环', stats:{ crit:30 },        count:4 }
-  },
-  rogue: {
-    shadow:   { name:'暗影光环', stats:{ atk:45,spd:15 }, count:4 },
-    phantom:  { name:'幻影光环', stats:{ def:15,crit:20 }, count:4 },
-    death:    { name:'死神光环', stats:{ crit:35 },        count:4 }
-  }
+// ═══════════════════════════════════════════
+// 常量配置
+// ═══════════════════════════════════════════
+const QUALITY_KEYS=['green','blue','purple','orange','red'];
+const QUALITY_COLORS={green:'#4ade80',blue:'#60a5fa',purple:'#a855f7',orange:'#f97316',red:'#ef4444'};
+const QUALITY_NAMES={green:'优秀',blue:'精良',purple:'史诗',orange:'传说',red:'神话'};
+const DROP_RATES=[0.60,0.25,0.13,0.015,0.005];
+const DROP_RATE_BOSS=[0.10,0.30,0.40,0.15,0.05];
+const DROP_RATE_ELITE=[0.40,0.35,0.20,0.04,0.01];
+const FRAG_DROP_RATE=0.08;
+const FRAG_UNLOCK=10;
+const MAX_INV=1000;
+const PAGE_SIZE=30;
+const MAP_NODES=21;
+const WB_HOUR_A=8,WB_HOUR_B=20;
+const SLOTS=['weapon','helmet','chest','legs','gloves','ring1','ring2','earring1','earring2'];
+const SLOT_ICONS={weapon:'⚔️',helmet:'🪖',chest:'🦺',legs:'👖',gloves:'🧤',ring1:'💍',ring2:'💍',earring1:'📿',earring2:'📿'};
+const SLOT_NAMES={weapon:'武器',helmet:'头盔',chest:'胸甲',legs:'护腿',gloves:'手套',ring1:'戒指',ring2:'戒指',earring1:'耳环',earring2:'耳环'};
+const EMOJI_NORMAL='🐀';const EMOJI_ELITE='🐺';const EMOJI_BOSS='👹';const EMOJI_WB='🐉';
+const SET_BONUSES={
+  warrior:{name:'战士之力',pieces:{weapon:1,chest:1,legs:1},bonus:{atk:20,crit:5}},
+  mage:{name:'法师奥术',pieces:{weapon:1,helmet:1,earring1:1},bonus:{atk:10,spd:0.2}},
+  rogue:{name:'盗贼敏捷',pieces:{gloves:1,ring1:1,earring2:1},bonus:{atk:15,spd:0.15}},
+  archer:{name:'猎人精准',pieces:{weapon:1,legs:1,earring1:1},bonus:{atk:12,crit:8}},
+  dragon:{name:'巨龙之怒',pieces:{helmet:1,chest:1,gloves:1,legs:1},bonus:{atk:50,crit:10}}
 };
+const SKINS=[
+  {id:'cat-archer',animal:'cat',cls:'archer',icon:'🐱',name:'猫·弓手',clsName:'弓手'},
+  {id:'dog-warrior',animal:'dog',cls:'warrior',icon:'🐕',name:'狗·剑士',clsName:'剑士'},
+  {id:'rabbit-mage',animal:'rabbit',cls:'mage',icon:'🐰',name:'兔·法师',clsName:'法师'},
+  {id:'bird-rogue',animal:'bird',cls:'rogue',icon:'🐦',name:'鸟·盗贼',clsName:'盗贼'},
+  {id:'cat-warrior',animal:'cat',cls:'warrior',icon:'🐱',name:'猫·剑士',clsName:'剑士'},
+  {id:'dog-archer',animal:'dog',cls:'archer',icon:'🐕',name:'狗·弓手',clsName:'弓手'},
+  {id:'rabbit-rogue',animal:'rabbit',cls:'rogue',icon:'🐰',name:'兔·盗贼',clsName:'盗贼'},
+  {id:'bird-mage',animal:'bird',cls:'mage',icon:'🐦',name:'鸟·法师',clsName:'法师'},
+  {id:'cat-mage',animal:'cat',cls:'mage',icon:'🐱',name:'猫·法师',clsName:'法师'},
+  {id:'dog-rogue',animal:'dog',cls:'rogue',icon:'🐕',name:'狗·盗贼',clsName:'盗贼'},
+  {id:'rabbit-warrior',animal:'rabbit',cls:'warrior',icon:'🐰',name:'兔·剑士',clsName:'剑士'},
+  {id:'bird-archer',animal:'bird',cls:'archer',icon:'🐦',name:'鸟·弓手',clsName:'弓手'},
+  {id:'cat-rogue',animal:'cat',cls:'rogue',icon:'🐱',name:'猫·盗贼',clsName:'盗贼'},
+  {id:'dog-mage',animal:'dog',cls:'mage',icon:'🐕',name:'狗·法师',clsName:'法师'},
+  {id:'rabbit-archer',animal:'rabbit',cls:'archer',icon:'🐰',name:'兔·弓手',clsName:'弓手'},
+  {id:'bird-warrior',animal:'bird',cls:'warrior',icon:'🐦',name:'鸟·剑士',clsName:'剑士'}
+];
+const MONSTER_NAMES={
+  normal:['哥布林','史莱姆','蝙蝠','骷髅'],
+  elite:['精英狼','精英巨人','精英蜥蜴'],
+  boss:['关卡BOSS'],
+  wb:['世界BOSS·炎龙','世界BOSS·冰魔']
+};
+const STAT_NAMES={atk:'攻击',crit:'暴击率',spd:'速度',hp:'生命'};
+const EQUIP_PREFIXES=['锋利的','坚固的','神秘的','狂暴的','神圣的','古老的','毁灭的','永恒的','夜影的'];
 
-/* 职业对应英文名（用于套装属性查找） */
-const PROF_EN = { warrior:'warrior',archer:'archer',mage:'mage',rogue:'rogue' };
+// ═══════════════════════════════════════════
+// 游戏状态
+// ═══════════════════════════════════════════
+let G={
+  player:{atk:10,crit:5,spd:1,baseAtk:10,baseCrit:5,baseSpd:1},
+  currentStage:1,
+  stageKills:0,
+  totalKills:0,
+  stageClears:0,
+  inventory:[],
+  equipped:{},
+  skins:{},
+  activeSkin:'dog-warrior',
+  fragments:0,
+  totalFragments:0,
+  totalDrops:0,
+  totalDisasm:0,
+  worldBoss:{active:false,hps:[0,0],maxHps:[0,0],alive:[false,false],cooldown:0},
+  wbHits:{}
+};
+let invPage=0,invSort='quality',invSlot=-1;
+let monster=null;
+let autoSaveTimer=null;
 
-// ─────────────────────────────────────────────────────
-// 2. 游戏状 ?// ─────────────────────────────────────────────────────
-let G = null; // 游戏全局状 ?
-function initState() {
-  return {
-    // 玩家基础属 ?    player: {
-      name: '冒险 ?,
-      animal: 'dog',        // 动物形象
-      profession: 'warrior', // 职业
-      level: 1,
-      exp: 0,
-      hp: 100, maxHp: 100,
-      atk: 10, def: 5, crit: 5, spd: 1
-    },
-    // 已解锁形 ?    unlockedAnimals:     ['dog'],
-    unlockedProfessions: ['warrior'],
-    // 进度
-    currentStage: 1,
-    mapSteps: 0,           // 地图步进 ?-20 ?    monstersKilled: 0,      // 总击杀
-    stageMonstersKilled: 0, // 本关击杀
-    stageCompleted: 0,
-    totalClicks: 0,
-    totalDamage: 0,
-    // 背包
-    inventory: [],
-    maxInventorySize: 1000,
-    // 装备（已穿戴 ?    equipped: {
-      weapon:null, helmet:null, chest:null, legs:null, gloves:null,
-      ring1:null, ring2:null, earring1:null, earring2:null
-    },
-    // 形象碎片（集 ?0个解锁形象）
-    fragments: {},
-    // 世界BOSS
-    worldBosses: [],       // 当前存活 ?worldBoss 对象
-    // 已激活的套装
-    setBonusActivated: {},
-    lastSave: Date.now()
+// ═══════════════════════════════════════════
+// 工具函数
+// ═══════════════════════════════════════════
+function rollQuality(level,type='normal'){
+  const rates=type==='boss'?DROP_RATE_BOSS:type==='elite'?DROP_RATE_ELITE:DROP_RATES;
+  let r=Math.random();
+  for(let i=0;i<rates.length;i++){
+    let threshold=rates[i]+(level-1)*0.005;
+    if(r<threshold)return QUALITY_KEYS[i];
+    r-=rates[i];
+  }
+  return'green';
+}
+function getQualityColor(q){return QUALITY_COLORS[q]||'#fff'}
+function getQualityName(q){return QUALITY_NAMES[q]||q}
+function rand(n){return Math.floor(Math.random()*n)}
+function randFrom(arr){return arr[rand(arr.length)]}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+
+// ═══════════════════════════════════════════
+// 装备生成
+// ═══════════════════════════════════════════
+function genEquip(level,quality,slot){
+  const prefix=randFrom(EQUIP_PREFIXES);
+  const q=quality||rollQuality(level);
+  const atk=Math.floor((5+level*3)*(1+QUALITY_KEYS.indexOf(q)*0.5));
+  const crit=Math.floor(rand(3)*(1+QUALITY_KEYS.indexOf(q)*0.3));
+  const spd=parseFloat((0.05+rand(5)*0.02*(1+QUALITY_KEYS.indexOf(q)*0.2)).toFixed(2));
+  const hp=Math.floor((20+level*10)*(1+QUALITY_KEYS.indexOf(q)*0.4));
+  const set=Math.random()<0.15?randFrom(Object.keys(SET_BONUSES)):null;
+  return{
+    id:Date.now()+rand(100000),
+    slot:slot||randFrom(SLOTS),
+    quality:q,
+    name:prefix+SLOT_NAMES[slot||randFrom(SLOTS)],
+    level,
+    atk,crit,spd,hp,
+    set,
+    emoji:SLOT_ICONS[slot||randFrom(SLOTS)]
   };
 }
-
-// ─────────────────────────────────────────────────────
-// 3. 存档系统（localStorage ?// ─────────────────────────────────────────────────────
-const SAVE_KEY = 'maze_hunter_save_v1';
-
-function saveGame() {
-  if (!G) return;
-  G.lastSave = Date.now();
-  try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(G));
-    showToast('💾 存档成功', '#4ade80');
-  } catch(e) {
-    showToast(' ?存档失败', '#ef4444');
-  }
+function equipStats(eq){
+  return[
+    eq.atk?{k:'atk',v:eq.atk}:null,
+    eq.crit?{k:'crit',v:eq.crit}:null,
+    eq.spd?{k:'spd',v:eq.spd}:null,
+    eq.hp?{k:'hp',v:eq.hp}:null
+  ].filter(Boolean);
 }
-
-function loadGame() {
-  try {
-    const data = localStorage.getItem(SAVE_KEY);
-    if (!data) return null;
-    const loaded = JSON.parse(data);
-    // 合并，防止新版本字段丢失
-    G = { ...initState(), ...loaded };
-    // 确保 equipped 字段完整
-    for (const s of EQUIP_SLOTS) {
-      if (G.equipped[s] === undefined) G.equipped[s] = null;
+function calcSetBonus(){
+  const equipped=G.equipped;
+  let activeSets=[];
+  for(const setKey of Object.keys(SET_BONUSES)){
+    const sb=SET_BONUSES[setKey];
+    let count=0;
+    for(const s of Object.keys(sb.pieces)){
+      if(equipped[s]&&equipped[s].set===setKey)count++;
     }
-    return G;
-  } catch(e) {
-    return null;
+    if(count>=3)activeSets.push({key:setKey,...sb});
   }
+  let totalAtk=0,totalCrit=0,totalSpd=0;
+  for(const s of activeSets){
+    totalAtk+=s.bonus.atk||0;
+    totalCrit+=s.bonus.crit||0;
+    totalSpd+=s.bonus.spd||0;
+  }
+  G.player.atk=G.player.baseAtk+totalAtk;
+  G.player.crit=clamp(G.player.baseCrit+totalCrit,0,100);
+  G.player.spd=1+totalSpd;
+  return activeSets;
 }
 
-function deleteSave() { localStorage.removeItem(SAVE_KEY); }
-
-// ─────────────────────────────────────────────────────
-// 4. 品质抽取
-//    ?0% /  ?5% /  ?3% /  ?.5% /  ?.5%
-// ─────────────────────────────────────────────────────
-function rollQuality(level = 1) {
-  const levelBonus = (level - 1) * 0.01;
-  let r = Math.random();
-  const rates = [
-    { key:'green',  rate: DROP_RATES[0] },
-    { key:'blue',   rate: DROP_RATES[1] },
-    { key:'purple', rate: DROP_RATES[2] + levelBonus },
-    { key:'orange', rate: DROP_RATES[3] + levelBonus * 0.5 },
-    { key:'red',    rate: DROP_RATES[4] }
-  ];
-  for (const { key, rate } of rates) {
-    if (r < rate) return key;
-    r -= rate;
-  }
-  return 'green';
-}
-
-// ─────────────────────────────────────────────────────
-// 5. 装备生成
-// ─────────────────────────────────────────────────────
-const QUALITY_MULT = { green:1, blue:1.3, purple:1.8, orange:2.5, red:3.5 };
-
-function generateEquipment(quality, monsterLevel = 1) {
-  const slot = EQUIP_SLOTS[Math.floor(Math.random() * EQUIP_SLOTS.length)];
-  const mult = QUALITY_MULT[quality] || 1;
-  const stats = {
-    atk:  Math.floor((5  + monsterLevel * 2)  * mult),
-    def:  Math.floor((3  + monsterLevel * 1)  * mult),
-    hp:   Math.floor((10 + monsterLevel * 5)   * mult),
-    crit: Math.floor((1  + monsterLevel * 0.5) * mult),
-    spd:  parseFloat(((0.5 + monsterLevel * 0.2) * mult).toFixed(1))
-  };
-  // 20% 概率带套 ?  let set = null;
-  if (Math.random() < 0.2) {
-    const profs = ['warrior','archer','mage','rogue'];
-    const prof  = profs[Math.floor(Math.random() * profs.length)];
-    const sets  = Object.keys(SET_BONUSES[prof]);
-    set = { profession: prof, name: sets[Math.floor(Math.random() * sets.length)] };
-  }
-  return {
-    id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-    slot, slotName: SLOT_NAMES[slot], quality,
-    color: QUALITY_COLORS[quality],
-    name: QUALITY_NAMES[quality] + SLOT_NAMES[slot],
-    level: monsterLevel,
-    stats, set
-  };
-}
-
-// ─────────────────────────────────────────────────────
-// 6. 装备统计加成计算
-// ─────────────────────────────────────────────────────
-function getEquipStats() {
-  let atkB=0, defB=0, critB=0, spdB=0, hpB=0;
-  // 装备基础属 ?  for (const s of EQUIP_SLOTS) {
-    const item = G.equipped[s];
-    if (!item || !item.stats) continue;
-    if (item.stats.atk  !== undefined) atkB  += item.stats.atk;
-    if (item.stats.def  !== undefined) defB  += item.stats.def;
-    if (item.stats.crit !== undefined) critB += item.stats.crit;
-    if (item.stats.spd  !== undefined) spdB  += item.stats.spd;
-    if (item.stats.hp   !== undefined) hpB   += item.stats.hp;
-  }
-  // 套装光环属 ?  for (const setName of Object.keys(G.setBonusActivated)) {
-    const profSets = SET_BONUSES[G.player.profession];
-    const def = profSets?.[setName];
-    if (!def) continue;
-    for (const [k, v] of Object.entries(def.stats)) {
-      if (k === 'atk')  atkB  += v;
-      else if (k === 'def') defB += v;
-      else if (k === 'crit') critB += v;
-      else if (k === 'spd')  spdB  += v;
+// ═══════════════════════════════════════════
+// 怪物
+// ═══════════════════════════════════════════
+function spawnMonster(){
+  const stage=G.currentStage;
+  let type='normal',isBoss=false;
+  if(G.worldBoss.active){
+    const alive=G.worldBoss.alive.indexOf(true);
+    if(alive>=0){
+      type='wb';
+      const wbNames=['🐉 炎龙','🐉 冰魔'];
+      monster={
+        type:'wb',isBoss:false,isWB:true,wbIndex:alive,
+        level:stage+10,
+        hp:G.worldBoss.hps[alive],
+        maxHp:G.worldBoss.maxHps[alive],
+        name:wbNames[alive]+' · Lv.'+(stage+10),
+        emoji:EMOJI_WB
+      };
+      updateMonsterUI();return;
     }
   }
-  return { atkB, defB, critB, spdB, hpB };
-}
-
-// ─────────────────────────────────────────────────────
-// 7. 套装检查（装备/卸下时调用）
-// ─────────────────────────────────────────────────────
-function checkSetBonus() {
-  const prof   = G.player.profession;
-  const profSets = SET_BONUSES[prof];
-  if (!profSets) return [];
-
-  // 按套装名分组已穿装备
-  const bySet = {};
-  for (const s of EQUIP_SLOTS) {
-    const item = G.equipped[s];
-    if (item && item.set && item.set.profession === prof) {
-      const n = item.set.name;
-      if (!bySet[n]) bySet[n] = [];
-      bySet[n].push(item);
-    }
+  if(G.stageKills>0&&G.stageKills%MAP_NODES===0){
+    type='boss';isBoss=true;
+  }else if(G.stageKills>0&&G.stageKills%7===0&&Math.random()<0.25){
+    type='elite';
   }
-
-  const activated = [];
-  for (const [setName, items] of Object.entries(bySet)) {
-    const def = profSets[setName];
-    if (!def) continue;
-    // 凑齐4件且未激活过
-    if (items.length >= def.count && !G.setBonusActivated[setName]) {
-      G.setBonusActivated[setName] = true;
-      activated.push(def);
-      showSetBonusAnim(def);
-    }
-  }
-  return activated;
-}
-
-// ─────────────────────────────────────────────────────
-// 8. 穿戴 / 卸下装备
-// ─────────────────────────────────────────────────────
-function equipItem(item) {
-  const slot = item.slot;
-  // 如果该部位已有装备，退回背 ?  if (G.equipped[slot]) {
-    G.inventory.push(G.equipped[slot]);
-  }
-  G.equipped[slot] = item;
-  // 从背包移 ?  const idx = G.inventory.findIndex(e => e.id === item.id);
-  if (idx !== -1) G.inventory.splice(idx, 1);
-  checkSetBonus();
-  updateAllUI();
-}
-
-function unequipSlot(slot) {
-  if (!G.equipped[slot]) return;
-  if (G.inventory.length >= G.maxInventorySize) {
-    showToast('背包已满 ?, '#ef4444'); return;
-  }
-  G.inventory.push(G.equipped[slot]);
-  G.equipped[slot] = null;
-  updateAllUI();
-}
-
-function scrapItem(id) {
-  const idx = G.inventory.findIndex(i => i.id === id);
-  if (idx >= 0) {
-    const item = G.inventory[idx];
-    G.inventory.splice(idx, 1);
-    showToast('分解 ?' + item.name, item.color);
-    closeAllModals();
-    renderInventory();
-    updateAllUI();
-  }
-}
-
-function scrapAll() {
-  if (G.inventory.length === 0) { showToast('背包是空的', '#a89070'); return; }
-  const count = G.inventory.length;
-  G.inventory = [];
-  showToast('分解了 ' + count + ' 件装备', '#ef4444');
-  renderInventory();
-  updateAllUI();
-}
-
-// ─────────────────────────────────────────────────────
-// 9. 角色换肤
-// ─────────────────────────────────────────────────────
-const CHAR_EMOJI = {
-  dog:    { warrior:'🐕⚔️', archer:'🐕🏹', mage:'🐕🔮', rogue:'🐕🗡 ? },
-  cat:    { warrior:'🐱⚔️', archer:'🐱🏹', mage:'🐱🔮', rogue:'🐱🗡 ? },
-  rabbit: { warrior:'🐰⚔️', archer:'🐰🏹', mage:'🐰🔮', rogue:'🐰🗡 ? },
-  bird:   { warrior:'🐦⚔️', archer:'🐦🏹', mage:'🐦🔮', rogue:'🐦🗡 ? }
-};
-
-function getCharEmoji(animal, profession) {
-  return CHAR_EMOJI[animal]?.[profession] || '🧙';
-}
-
-// ─────────────────────────────────────────────────────
-// 10. 碎片系统（击杀怪物5%概率掉落碎片 ?0个碎片解锁形象）
-// ─────────────────────────────────────────────────────
-function rollFragmentDrop() {
-  const r = Math.random();
-  let fragmentType = null;
-  if (r < 0.02) fragmentType = 'cat';
-  else if (r < 0.04) fragmentType = 'rabbit';
-  else if (r < 0.06) fragmentType = 'bird';
-  else if (r < 0.08) fragmentType = 'archer';
-  else if (r < 0.10) fragmentType = 'mage';
-  else if (r < 0.12) fragmentType = 'rogue';
-  if (fragmentType) {
-    G.fragments[fragmentType] = (G.fragments[fragmentType] || 0) + 1;
-    const needed = 10;
-    const count = G.fragments[fragmentType];
-    showToast('获得 ' + fragmentType + ' 碎片！(' + count + '/' + needed + ')', '#a855f7');
-    if (count >= needed && !G.unlockedProfessions.includes(fragmentType) && !G.unlockedAnimals.includes(fragmentType)) {
-      G.unlockedAnimals.push(fragmentType);
-      showToast('🎉 解锁新形象：' + fragmentType + '！', '#f97316');
-    }
-  }
-}
-
-// ─────────────────────────────────────────────────────
-// 11. 地图路径 UI 初始 ?// ─────────────────────────────────────────────────────
-function initMapPath() {
-  const mp = document.getElementById('map-path');
-  mp.innerHTML = '';
-  for (let i = 0; i < 21; i++) {
-    const node = document.createElement('div');
-    node.className = 'map-node' + (i === 20 ? ' boss-node' : '');
-    node.dataset.index = i;
-    mp.appendChild(node);
-    if (i < 20) {
-      const line = document.createElement('div');
-      line.className = 'map-line';
-      mp.appendChild(line);
-    }
-  }
-}
-
-function updateMapPath() {
-  const steps = G ? G.mapSteps % 21 : 0;
-  document.querySelectorAll('.map-node').forEach((n, i) => {
-    n.classList.remove('visited','active');
-    if (i < steps) n.classList.add('visited');
-    else if (i === steps) n.classList.add('active');
-  });
-}
-
-// ─────────────────────────────────────────────────────
-// 12. 怪物系统
-// ─────────────────────────────────────────────────────
-let currentMonster = null;
-
-const MONSTER_NAMES = {
-  normal: ['🐀 哥布 ?,'🐀 史莱 ?,'🦇 蝙蝠','💀 骷髅','🐺 野狼'],
-  elite:  ['🐺 精英 ?,'👹 精英巨人','👾 精英甲虫'],
-  boss:   ['👹 关卡BOSS'],
-  worldBoss: ['🐉 世界BOSS·炎魔','🐉 世界BOSS·冰龙']
-};
-
-function getMonsterEmoji(type) {
-  if (type === 'worldBoss') return '🐉';
-  if (type === 'boss') return '👹';
-  if (type === 'elite') return '🐺';
-  return '🐀';
-}
-
-function getMonsterTypeColor(type) {
-  return { normal:'#9ca3af', elite:'#fbbf24', boss:'#ef4444', worldBoss:'#a855f7' }[type] || '#9ca3af';
-}
-
-function spawnMonster(type = 'normal', level = 1, forced = false) {
-  if (currentMonster && !forced) return currentMonster;
-
-  const isBoss   = type === 'boss' || type === 'worldBoss';
-  const hpMult   = isBoss ? (type === 'worldBoss' ? 100 : 20) : (type === 'elite' ? 5 : 1);
-  const baseHp   = 50 + level * 20;
-  const names    = MONSTER_NAMES[type] || MONSTER_NAMES.normal;
-  const emoji    = getMonsterEmoji(type);
-
-  currentMonster = {
-    id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-    type, level,
-    hp:   Math.floor(baseHp * hpMult),
-    maxHp:Math.floor(baseHp * hpMult),
-    name: names[Math.floor(Math.random() * names.length)],
+  const baseHp=50+stage*15;
+  let hpMult=type==='boss'?25:type==='elite'?6:1;
+  const names=MONSTER_NAMES[type];
+  const emoji=type==='normal'?EMOJI_NORMAL:type==='elite'?EMOJI_ELITE:type==='boss'?EMOJI_BOSS:EMOJI_WB;
+  monster={
+    type,isBoss,isWB:false,
+    level:stage,
+    hp:Math.floor(baseHp*hpMult),
+    maxHp:Math.floor(baseHp*hpMult),
+    name:randFrom(names)+(isBoss?' · BOSS':'')+' · Lv.'+stage,
     emoji
   };
   updateMonsterUI();
-  return currentMonster;
 }
-
-function updateMonsterUI() {
-  const m = currentMonster;
-  if (!m) return;
-  document.getElementById('monster-sprite').textContent = m.emoji;
-  document.getElementById('monster-name').textContent   = m.name + ' · Lv.' + m.level;
-  document.getElementById('hp-bar').style.width          = Math.max(0, m.hp / m.maxHp * 100) + '%';
-  document.getElementById('hp-text').textContent        = m.hp + ' / ' + m.maxHp;
-
-  const badge = document.getElementById('monster-type-badge');
-  const color  = getMonsterTypeColor(m.type);
-  badge.style.background = color + '22';
-  badge.style.color      = color;
-  badge.textContent      = { normal:'普 ?, elite:'精英', boss:'BOSS', worldBoss:'世界BOSS' }[m.type] || '普 ?;
-
-  const sprite = document.getElementById('monster-sprite');
-  sprite.classList.remove('pulse');
-  if (m.type === 'worldBoss') sprite.classList.add('pulse');
-}
-
-// ─────────────────────────────────────────────────────
-// 13. 点击攻击处理
-// ─────────────────────────────────────────────────────
-function handleClick(e) {
-  if (!G) return;
-  G.totalClicks++;
-
-  // 如果没有怪物，先生成
-  if (!currentMonster) {
-    decideAndSpawn();
-    updateAllUI();
-    return;
-  }
-
-  // 计算伤害
-  const stats = getEquipStats();
-  const baseAtk = G.player.atk + stats.atkB;
-  const critRate = (G.player.crit + stats.critB) / 100;
-  const isCrit   = Math.random() < critRate;
-  const spdMult  = G.player.spd * (1 + stats.spdB / 100);
-  let damage      = Math.floor(baseAtk * spdMult * (isCrit ? 2 : 1);
-
-  G.totalDamage += damage;
-  currentMonster.hp -= damage;
-
-  // 伤害飘字
-  const cx = e ? e.clientX : 300 + Math.random() * 400;
-  const cy = e ? e.clientY : 200 + Math.random() * 150;
-  showDamageNum(damage, isCrit, cx, cy, currentMonster.type === 'worldBoss');
-
-  // 怪物抖动
-  const sp = document.getElementById('monster-sprite');
-  sp.classList.remove('hit');
-  void sp.offsetWidth;
-  sp.classList.add('hit');
-
-  // 怪物死亡
-  if (currentMonster.hp <= 0) {
-    currentMonster.hp = 0;
-    onMonsterKilled(currentMonster);
-    currentMonster = null;
-    const sprite = document.getElementById('monster-sprite');
-    sprite.classList.add('monster-dying');
-    setTimeout(() => {
-      sprite.classList.remove('monster-dying');
-      decideAndSpawn();
-      updateMonsterUI();
-    }, 500);
-  }
-
-  updateMonsterUI();
-  updateAllUI();
-}
-
-function decideAndSpawn() {
-  const s = G;
-  // 每走20步遇 ?BOSS
-  if (s.mapSteps > 0 && s.mapSteps % 20 === 0) {
-    spawnMonster('boss', s.currentStage);
-    return;
-  }
-  //  ?0小怪有50%概率出精 ?  if (s.stageMonstersKilled > 0 && s.stageMonstersKilled % 20 === 0 && Math.random() < 0.5) {
-    spawnMonster('elite', s.currentStage);
-    return;
-  }
-  // 普通小 ?  spawnMonster('normal', s.currentStage);
-}
-
-function onMonsterKilled(m) {
-  G.monstersKilled++;
-  G.stageMonstersKilled++;
-  G.mapSteps++;
-
-  // 碎片掉落
-  rollFragmentDrop();
-
-  // 装备掉落
-  const quality = rollDropQualityForMonster(m);
-  const eq = generateEquipment(quality, m.level);
-  if (G.inventory.length < G.maxInventorySize) {
-    G.inventory.push(eq);
-    showDropAnim(eq);
-  }
-
-  // 检查通关（每 ?0只怪）
-  if (G.stageMonstersKilled >= 20) {
-    G.currentStage++;
-    G.stageMonstersKilled = 0;
-    G.mapSteps = 0;
-    G.stageCompleted++;
-    showToast('🎉 通关！进入第 ' + G.currentStage + ' 关！', '#f97c4a');
-  }
-
-  checkSetBonus();
-  updateMapPath();
-}
-
-function rollDropQualityForMonster(m) {
-  let q = rollQuality(m.level);
-  // 精英以上提升品质
-  if (m.type === 'elite') {
-    if (Math.random() < 0.3) q = 'purple';
-    else if (Math.random() < 0.5) q = 'blue';
-  }
-  if (m.type === 'boss') {
-    const r = Math.random();
-    if (r < 0.15)      q = 'orange';
-    else if (r < 0.4) q = 'purple';
-    else if (r < 0.7) q = 'blue';
-  }
-  if (m.type === 'worldBoss') {
-    q = Math.random() < 0.7 ? 'purple' : 'orange';
-  }
-  return q;
-}
-
-// ─────────────────────────────────────────────────────
-// 14. 伤害飘字
-// ─────────────────────────────────────────────────────
-function showDamageNum(dmg, isCrit, x, y, isWB = false) {
-  const layer = document.getElementById('dmg-layer');
-  const div   = document.createElement('div');
-  div.className = 'dmg-num' + (isCrit ? ' crit' : '') + (isWB ? ' wb' : '');
-  div.textContent = (isCrit ? '💥 ' : '') + dmg;
-  div.style.left  = (x || 300) + 'px';
-  div.style.top   = (y || 200) + 'px';
-  layer.appendChild(div);
-  setTimeout(() => div.remove(), 800);
-}
-
-// ─────────────────────────────────────────────────────
-// 15. 世界BOSS系统（北京时 ?08:00  ?20:00 各刷 ?只）
-// ─────────────────────────────────────────────────────
-let wbRefreshTimers = [];
-
-function calcNextWBRftime() {
-  const now = new Date();
-  // 转为北京时间（UTC+8 ?  const utc8 = new Date(now.getTime() + (8 - now.getTimezoneOffset()/60) * 3600000);
-  const h = utc8.getUTCHours();
-  let next;
-  if (h < 8)      next = new Date(utc8.getFullYear(), utc8.getMonth(), utc8.getDate(), 8, 0, 0);
-  else if (h < 20) next = new Date(utc8.getFullYear(), utc8.getMonth(), utc8.getDate(), 20, 0, 0);
-  else {
-    next = new Date(utc8.getFullYear(), utc8.getMonth(), utc8.getDate() + 1, 8, 0, 0);
-  }
-  // 换回本地时间 ?  return new Date(next.getTime() - (8 - now.getTimezoneOffset()/60) * 3600000).getTime();
-}
-
-function updateWBTimer() {
-  const next = calcNextWBRftime();
-  const diff = next - Date.now();
-  const h = Math.floor(diff/3600000);
-  const m = Math.floor((diff%3600000)/60000);
-  const s = Math.floor((diff%60000)/1000);
-  document.getElementById('wb-timer').textContent =
-    '世界BOSS: ' + h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
-}
-
-function spawnWorldBosses() {
-  G.worldBosses = [];
-  for (let i = 0; i < 2; i++) {
-    const names = ['🐉 世界BOSS·炎魔','🐉 世界BOSS·冰龙'];
-    const baseHp = 500 + G.currentStage * 100;
-    G.worldBosses.push({
-      id: 'wb_' + i,
-      name: names[i],
-      level: G.currentStage * 5,
-      hp: baseHp * 100,
-      maxHp: baseHp * 100,
-      active: true,
-      index: i
-    });
-  }
-  showToast('🐉 世界BOSS已刷新！点击进入战斗 ?, '#a855f7');
-  updateWBPanel();
-}
-
-function updateWBPanel() {
-  const panel = document.getElementById('wb-panel');
-  const list  = document.getElementById('wb-list');
-  if (!G.worldBosses.length) { panel.classList.remove('show'); return; }
-  list.innerHTML = G.worldBosses.map(b => {
-    const pct = Math.max(0, b.hp / b.maxHp * 100).toFixed(0);
-    return `<div class="wb-item" style="cursor:pointer" onclick="fightWorldBoss(${b.index})">
-      <span class="wb-name">${b.name}</span>
-      <span class="wb-hp">${pct}%</span>
-    </div>
-    <div style="height:4px;background:#3d2a14;border-radius:2px;margin-bottom:6px">
-      <div style="height:4px;width:${pct}%;background:#ef4444;border-radius:2px"></div>
-    </div>`;
-  }).join('');
-}
-
-function fightWorldBoss(index) {
-  const wb = G.worldBosses[index];
-  if (!wb || !wb.active) return;
-  document.getElementById('wb-panel').classList.remove('show');
-  // 切换到世界BOSS战斗
-  currentMonster = {
-    id: wb.id, type: 'worldBoss', level: wb.level,
-    hp: wb.hp, maxHp: wb.maxHp,
-    name: wb.name, emoji: '🐉'
+function updateMonsterUI(){
+  if(!monster)return;
+  document.getElementById('monster-sprite').textContent=monster.emoji;
+  document.getElementById('monster-name').textContent=monster.name;
+  const typeLabel={
+    normal:'普通怪物',
+    elite:'精英怪物',
+    boss:'BOSS',
+    wb:'世界BOSS'
   };
-  wb._monRef = currentMonster; // 引用，方便更 ?  updateMonsterUI();
-  showToast('⚔️ 世界BOSS战开始！', '#a855f7');
+  document.getElementById('monster-type').textContent=typeLabel[monster.type]||'';
+  const pct=clamp(monster.hp/monster.maxHp*100,0,100);
+  document.getElementById('hp-bar').style.width=pct+'%';
+  document.getElementById('hp-text').textContent=Math.max(0,monster.hp)+' / '+monster.maxHp;
 }
-
-function toggleWbPanel() {
-  document.getElementById('wb-panel').classList.toggle('show');
-  updateWBPanel();
-}
-
-// ─────────────────────────────────────────────────────
-// 16. 弹窗系统
-// ─────────────────────────────────────────────────────
-function closeAllModals() {
-  document.querySelectorAll('.modal').forEach(m => m.remove());
-}
-
-function showEquipDetail(item) {
-  closeAllModals();
-  const modal = document.createElement('div');
-  modal.className = 'modal show';
-  modal.innerHTML = `
-    <div class="modal-content" style="border-color:${item.color}">
-      <button class="modal-close" onclick="closeAllModals()">×</button>
-      <div class="equip-modal-header">
-        <div class="equip-modal-name" style="color:${item.color}">${item.name}</div>
-        <div class="equip-modal-meta">Lv.${item.level} · ${item.slotName}</div>
-      </div>
-      <div class="equip-modal-stats">
-        ${Object.entries(item.stats).map(([k,v]) => `<div class="equip-stat-row"><span class="k">${k==='atk'?'攻击':k==='def'?'防御':k==='hp'?'生命':k==='crit'?'暴击':'速度'}</span><span class="v">+${v}</span></div>`).join('')}
-      </div>
-      ${item.set ? `<div class="equip-set-tag"> ?套装 ?{item.set.name}（凑 ?件激活光环）</div>` : ''}
-      <div class="equip-modal-actions">
-        <button class="btn-primary" onclick="equipFromModal('${item.id}')">穿戴</button>
-        <button class="btn-danger" onclick="scrapItem('${item.id}')">分解</button>
-        <button class="btn-secondary" onclick="closeAllModals()">关闭</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) closeAllModals(); });
-}
-
-function equipFromModal(id) {
-  const item = G.inventory.find(e => e.id === id);
-  if (item) { equipItem(item); closeAllModals(); }
-}
-
-function showSkinModal() {
-  closeAllModals();
-  const a = G.player.animal, p = G.player.profession;
-  const modal = document.createElement('div');
-  modal.className = 'modal show';
-  modal.innerHTML = `
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeAllModals()">×</button>
-      <div class="modal-title">🎨 角色换肤</div>
-      <div class="skin-section">
-        <div class="skin-section-title">动物形象（收集碎片解锁）</div>
-        <div class="skin-grid">
-          ${ANIMALS.map(an => {
-            const unlocked = G.unlockedAnimals.includes(an);
-            const active   = an === a;
-            return `<div class="skin-card ${active?'active':''} ${unlocked?'':'locked'}"
-              ${unlocked ? `onclick="selectAnimal('${an}')"` : ''}>
-              <div class="skin-emoji">${CHAR_EMOJI[an]?.[p] || '🐕'}</div>
-              <div class="skin-name">${active?' ?':''}${ANIMAL_CN[an]}</div>
-              ${!unlocked ? '<div class="skin-lock">🔒</div>' : ''}
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-      <div class="skin-section">
-        <div class="skin-section-title">职业（收集碎片解锁）</div>
-        <div class="skin-grid">
-          ${PROFESSIONS.map(pr => {
-            const unlocked = G.unlockedProfessions.includes(pr);
-            const active   = pr === p;
-            return `<div class="skin-card ${active?'active':''} ${unlocked?'':'locked'}"
-              ${unlocked ? `onclick="selectProfession('${pr}')"` : ''}>
-              <div class="skin-emoji">${CHAR_EMOJI[a]?.[pr] || '⚔️'}</div>
-              <div class="skin-name">${active?' ?':''}${PROF_CN[pr]}</div>
-              ${!unlocked ? '<div class="skin-lock">🔒</div>' : ''}
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) closeAllModals(); });
-}
-
-function selectAnimal(an) {
-  G.player.animal = an;
-  updateCharUI();
-  closeAllModals();
-  updateAllUI();
-}
-
-function selectProfession(pr) {
-  G.player.profession = pr;
-  // 换职业后重算套装效果
-  G.setBonusActivated = {};
-  checkSetBonus();
-  updateCharUI();
-  closeAllModals();
-  updateAllUI();
-}
-
-function showBestiary() {
-  closeAllModals();
-  const modal = document.createElement('div');
-  modal.className = 'modal show';
-  modal.innerHTML = `
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeAllModals()">×</button>
-      <div class="modal-title">📖 怪物图鉴</div>
-      <div class="guide-list">
-        <div class="guide-item" style="border-color:#9ca3af">
-          <div class="gi-name" style="color:#9ca3af">🐀 普通小 ?/div>
-          <div class="gi-desc">每节 ?00%刷新 · HP倍率×1 · 掉率倍率×1</div>
-        </div>
-        <div class="guide-item" style="border-color:#fbbf24">
-          <div class="gi-name" style="color:#fbbf24">🐺 精英 ?/div>
-          <div class="gi-desc"> ?0小怪有50%概率出现 · HP倍率×5 · 掉率倍率×3</div>
-        </div>
-        <div class="guide-item" style="border-color:#ef4444">
-          <div class="gi-name" style="color:#ef4444">👹 关卡BOSS</div>
-          <div class="gi-desc">每关卡第20步出 ?· HP倍率×20 · 掉率倍率×10</div>
-        </div>
-        <div class="guide-item" style="border-color:#a855f7">
-          <div class="gi-name" style="color:#a855f7">🐉 世界BOSS</div>
-          <div class="gi-desc">北京时间 08:00/20:00 各刷 ? ?· HP倍率×100 · 保底紫装</div>
-        </div>
-        <div class="guide-item" style="border-color:#4ade80">
-          <div class="gi-name" style="color:#4ade80"> ?套装系统</div>
-          <div class="gi-desc">每职 ?套套装，凑齐4件激活光环效 ?/div>
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) closeAllModals(); });
-}
-
-// ─────────────────────────────────────────────────────
-// 17. 动画特效
-// ─────────────────────────────────────────────────────
-function showDropAnim(eq) {
-  const div = document.createElement('div');
-  div.className = 'drop-anim';
-  div.style.borderColor = eq.color;
-  div.innerHTML = `<div class="da-name" style="color:${eq.color}">${eq.name}</div>
-    <div class="da-quality">${QUALITY_NAMES[eq.quality]}</div>
-    <div class="da-slot">${eq.slotName}${eq.set ? ' · ' + eq.set.name : ''}</div>`;
-  document.body.appendChild(div);
-  setTimeout(() => div.remove(), 2200);
-}
-
-function showSetBonusAnim(def) {
-  const div = document.createElement('div');
-  div.className = 'set-anim';
-  div.innerHTML = `<div class="sa-title"> ?套装激 ?/div>
-    <div class="sa-name">${def.name}</div>
-    <div class="sa-stats">${Object.entries(def.stats).map(([k,v]) => '+' + v + ' ' + k).join(' · ')}</div>`;
-  document.body.appendChild(div);
-  setTimeout(() => div.remove(), 3200);
-}
-
-function showToast(msg, color = '#f5e6c8') {
-  let t = document.getElementById('toast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'toast';
-    t.className = 'toast';
-    document.body.appendChild(t);
+function updateMapProgress(){
+  const pct=clamp(G.stageKills/MAP_NODES*100,0,100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('kill-count').textContent=G.stageKills;
+  // Build step dots
+  const wrap=document.getElementById('map-progress');
+  wrap.querySelectorAll('.progress-step').forEach(e=>e.remove());
+  for(let i=1;i<MAP_NODES;i++){
+    const dot=document.createElement('div');
+    dot.className='progress-step';
+    dot.style.left=(i/MAP_NODES*100)+'%';
+    wrap.appendChild(dot);
   }
-  t.textContent = msg;
-  t.style.color = color;
-  t.style.display = 'block';
-  clearTimeout(t._tid);
-  t._tid = setTimeout(() => { t.style.display = 'none'; }, 2200);
 }
 
-function doSave() { saveGame(); }
-
-// ─────────────────────────────────────────────────────
-// 18. 装备栏点 ?// ─────────────────────────────────────────────────────
-function clickEquipSlot(slot) {
-  const candidates = G.inventory.filter(i => i.slot === slot);
-  if (candidates.length === 0) { showToast('背包中没有该部位装备', '#a89070'); return; }
-  // 按战力排序，战力=atk+def+hp/10+crit*2
-  candidates.sort((a,b) => {
-    const powerA = (a.stats.atk||0) + (a.stats.def||0) + (a.stats.hp||0)/10 + (a.stats.crit||0)*2;
-    const powerB = (b.stats.atk||0) + (b.stats.def||0) + (b.stats.hp||0)/10 + (b.stats.crit||0)*2;
-    return powerB - powerA;
-  });
-  const best = candidates[0];
-  const power = ((best.stats.atk||0)+(best.stats.def||0)+(best.stats.hp||0)/10+(best.stats.crit||0)*2).toFixed(0);
-  showToast('推荐: ' + best.name + ' (战力:' + power + ')', best.color);
-  showEquipDetail(best);
-}
-
-// ─────────────────────────────────────────────────────
-// 19. UI 更新（统一刷新 ?// ─────────────────────────────────────────────────────
-function updateAllUI() {
-  if (!G) return;
-  // 角色面板
-  updateCharUI();
-  // 顶部 ?  document.getElementById('stage-num').textContent  = G.currentStage;
-  document.getElementById('kill-count').textContent = G.stageMonstersKilled;
-  const pct = (G.mapSteps % 21) / 21 * 100;
-  document.getElementById('progress-fill').style.width = pct + '%';
-  // 统计
-  document.getElementById('s-clicks').textContent  = G.totalClicks.toLocaleString();
-  document.getElementById('s-damage').textContent  = G.totalDamage.toLocaleString();
-  document.getElementById('s-kills').textContent   = G.monstersKilled.toLocaleString();
-  document.getElementById('s-clears').textContent  = G.stageCompleted;
-  // 背包
-  document.getElementById('inv-count').textContent = G.inventory.length + '/' + G.maxInventorySize;
-  renderInventory();
-  // 装备 ?  renderEquipBar();
-  // 套装
-  renderActiveSet();
-}
-
-function updateCharUI() {
-  if (!G) return;
-  const emoji = getCharEmoji(G.player.animal, G.player.profession);
-  document.getElementById('char-icon').textContent = emoji;
-  document.getElementById('char-label').textContent = ANIMAL_CN[G.player.animal] + ' · ' + PROF_CN[G.player.profession];
-
-  const stats = getEquipStats();
-  const totalAtk  = G.player.atk  + stats.atkB;
-  const totalCrit = Math.min(100, G.player.crit + stats.critB);
-  const totalDef  = G.player.def  + stats.defB;
-  const totalHp   = G.player.maxHp + stats.hpB;
-
-  document.getElementById('stat-atk').textContent  = totalAtk;
-  document.getElementById('stat-crit').textContent = totalCrit + '%';
-  document.getElementById('stat-def').textContent  = totalDef;
-  document.getElementById('stat-hp').textContent   = totalHp;
-}
-
-let invSortBy = 'quality'; // 'quality' | 'slot' | 'level'
-let invPage = 1;
-const INV_PER_PAGE = 30;
-
-function setInvSort(sort) {
-  invSortBy = sort;
-  invPage = 1;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector(`.sort-btn[onclick*="${sort}"]`).classList.add('active');
-  renderInventory();
-}
-
-function invPage(dir) {
-  const sorted = getSortedInventory();
-  const totalPages = Math.max(1, Math.ceil(sorted.length / INV_PER_PAGE));
-  invPage += dir;
-  if (invPage < 1) invPage = 1;
-  if (invPage > totalPages) invPage = totalPages;
-  renderInventory();
-}
-
-function getSortedInventory() {
-  const sorted = [...G.inventory];
-  if (invSortBy === 'quality') {
-    const qOrder = { red:0, orange:1, purple:2, blue:3, green:4 };
-    sorted.sort((a,b) => (qOrder[a.quality]||99) - (qOrder[b.quality]||99));
-  } else if (invSortBy === 'slot') {
-    sorted.sort((a,b) => a.slot.localeCompare(b.slot));
-  } else {
-    sorted.sort((a,b) => b.level - a.level);
+// ═══════════════════════════════════════════
+// 攻击逻辑
+// ═══════════════════════════════════════════
+function handleClick(e){
+  if(!monster)return;
+  const critRoll=Math.random()*100;
+  const isCrit=critRoll<G.player.crit;
+  let dmg=Math.floor(G.player.atk*G.player.spd*(isCrit?2.5:1));
+  if(monster.isWB){
+    dmg=Math.floor(dmg*0.1);
   }
-  return sorted;
-}
-
-function renderInventory() {
-  const grid = document.getElementById('inv-grid');
-  if (!grid) return;
-  const sorted = getSortedInventory();
-  const totalPages = Math.max(1, Math.ceil(sorted.length / INV_PER_PAGE));
-  if (invPage > totalPages) invPage = totalPages;
-  const start = (invPage - 1) * INV_PER_PAGE;
-  const page = sorted.slice(start, start + INV_PER_PAGE);
-  grid.innerHTML = '';
-  for (const item of page) {
-    const slot = document.createElement('div');
-    slot.className = 'inv-slot';
-    slot.style.borderColor = item.color;
-    slot.innerHTML = `<div class="inv-quality-bar" style="background:${item.color}"></div><div class="inv-icon">${SLOT_ICONS[item.slot]||'📦'}</div>`;
-    slot.title = item.name;
-    slot.onclick = () => showEquipDetail(item);
-    grid.appendChild(slot);
+  monster.hp-=dmg;
+  const ex=e||{clientX:300+Math.random()*400,clientY:200+Math.random()*200};
+  showDamageNumber(dmg,isCrit,ex,monster.isWB);
+  const sprite=document.getElementById('monster-sprite');
+  sprite.classList.remove('hit');
+  void sprite.offsetWidth;
+  sprite.classList.add('hit');
+  if(monster.hp<=0){
+    onMonsterKill();
   }
-  document.getElementById('inv-count').textContent = G.inventory.length + '/100';
-  document.getElementById('inv-page-info').textContent = invPage + '/' + totalPages;
+  updateMonsterUI();
+}
+function onMonsterKill(){
+  G.totalKills++;
+  G.stageKills++;
+  document.getElementById('stat-kills').textContent=G.totalKills;
+  updateMapProgress();
+  // Drop equip
+  const q=rollQuality(monster.level,monster.type);
+  const eq=genEquip(monster.level,q);
+  if(G.inventory.length<MAX_INV){
+    G.inventory.push(eq);
+    G.totalDrops++;
+    document.getElementById('stat-drops').textContent=G.totalDrops;
+    showDropMsg('获得 '+getQualityName(q)+' '+eq.name);
+  }
+  // Fragment drop
+  if(Math.random()<FRAG_DROP_RATE){
+    G.fragments++;
+    G.totalFragments++;
+    document.getElementById('stat-frags').textContent=G.totalFragments;
+    showToast('获得碎片 x1 (已有 '+G.fragments+'/'+FRAG_UNLOCK+')','#c084fc');
+  }
+  // World boss kill
+  if(monster.isWB){
+    G.worldBoss.alive[monster.wbIndex]=false;
+    G.worldBoss.hps[monster.wbIndex]=0;
+    showToast('击退了世界BOSS！','#a855f7');
+    updateWorldBossUI();
+    monster=null;
+    setTimeout(()=>spawnMonster(),500);
+    return;
+  }
+  // Stage clear
+  if(monster.isBoss||G.stageKills>=MAP_NODES){
+    G.currentStage++;
+    G.stageKills=0;
+    G.stageClears++;
+    document.getElementById('stat-clears').textContent=G.stageClears;
+    document.getElementById('stage-num').textContent=G.currentStage;
+    showToast('🎉 通关第 '+(G.currentStage-1)+' 关！进入第 '+G.currentStage+' 关！');
+    updateMapProgress();
+  }
+  monster=null;
+  setTimeout(()=>spawnMonster(),300);
+}
+function showDamageNumber(damage,isCrit,e,isWB){
+  const layer=isWB?document.getElementById('wb-dmg-layer'):document.getElementById('dmg-layer');
+  const div=document.createElement('div');
+  div.className='dmg-num'+(isCrit?' crit':'');
+  div.textContent=(isCrit?'💥 ':'')+damage;
+  div.style.left=(e.clientX+rand(60)-30)+'px';
+  div.style.top=(e.clientY+rand(40)-20)+'px';
+  layer.appendChild(div);
+  setTimeout(()=>div.remove(),800);
+}
+function showDropMsg(msg){
+  const el=document.getElementById('drop-msg');
+  el.textContent=msg;
+  el.style.opacity='1';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.style.opacity='0',2000);
 }
 
-function renderEquipBar() {
-  for (const slot of EQUIP_SLOTS) {
-    const el  = document.querySelector(`.equip-slot[data-slot="${slot}"]`);
-    if (!el) continue;
-    const item = G.equipped[slot];
-    if (item) {
-      el.style.borderColor = item.color;
-      el.querySelector('.slot-icon').textContent = SLOT_ICONS[slot] || '📦';
-      el.querySelector('.slot-name').textContent = item.name.length > 3 ? item.name.substr(0,3) : item.name;
-      // 质量 ?      let qbar = el.querySelector('.slot-quality-bar');
-      if (!qbar) { qbar = document.createElement('div'); qbar.className = 'slot-quality-bar'; el.appendChild(qbar); }
-      qbar.style.background = item.color;
-    } else {
-      el.style.borderColor = '#5a3f20';
-      el.querySelector('.slot-icon').textContent = SLOT_ICONS[slot] || '📦';
-      el.querySelector('.slot-name').textContent  = SLOT_NAMES[slot];
-      const qbar = el.querySelector('.slot-quality-bar');
-      if (qbar) qbar.remove();
+// ═══════════════════════════════════════════
+// 世界BOSS
+// ═══════════════════════════════════════════
+function getNextWBTimes(){
+  const now=new Date();
+  const tzOffset=8*3600000;
+  const today8=new Date(now.getFullYear(),now.getMonth(),now.getDate(),8,0,0,0);
+  const today20=new Date(now.getFullYear(),now.getMonth(),now.getDate(),20,0,0,0);
+  let nextA=today8.getTime(),nextB=today20.getTime();
+  if(nextA<=now.getTime())nextA+=86400000;
+  if(nextB<=now.getTime())nextB+=86400000;
+  return[Math.min(nextA,nextB),Math.max(nextA,nextB)];
+}
+function updateWBCountdown(){
+  const[next]=getNextWBTimes();
+  const diff=next-new Date().getTime();
+  if(diff<=0){
+    document.getElementById('wb-countdown').textContent='世界BOSS已刷新！';
+    if(!G.worldBoss.active)activateWorldBoss();
+    return;
+  }
+  const h=Math.floor(diff/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  const s=Math.floor((diff%60000)/1000);
+  document.getElementById('wb-countdown').textContent=
+    '世界BOSS: '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function activateWorldBoss(){
+  G.worldBoss.active=true;
+  G.worldBoss.alive=[true,true];
+  G.worldBoss.maxHps=[50000,50000];
+  G.worldBoss.hps=[50000,50000];
+  G.wbHits={};
+  const panel=document.getElementById('wb-panel');
+  panel.style.display='block';
+  updateWorldBossUI();
+  showToast('🐉 世界BOSS出现了！快去挑战！','#a855f7');
+}
+function updateWorldBossUI(){
+  const list=document.getElementById('wb-list');
+  const names=['炎龙','冰魔'];
+  list.innerHTML='';
+  for(let i=0;i<2;i++){
+    const alive=G.worldBoss.alive[i];
+    const hp=G.worldBoss.hps[i];
+    const maxHp=G.worldBoss.maxHps[i];
+    const pct=alive?clamp(hp/maxHp*100,0,100):0;
+    const div=document.createElement('div');
+    div.className='wb-entry';
+    div.innerHTML=`
+      <div class="wb-name">${alive?'🐉':'⚰️'}</div>
+      <div style="flex:1;margin:0 8px">
+        <div style="font-size:11px">${names[i]}</div>
+        ${alive?`<div class="wb-hp-wrap"><div class="wb-hp-bar" style="width:${pct}%"></div></div>
+        <div class="wb-hp-text">${hp.toLocaleString()} / ${maxHp.toLocaleString()}</div>`:'<div style="font-size:11px;color:#666">已击败</div>'}
+      </div>
+      <button class="wb-btn" onclick="attackWB(${i})" ${alive?'':'disabled'}>攻击</button>
+    `;
+    list.appendChild(div);
+  }
+}
+function attackWB(index){
+  if(!G.worldBoss.active||!G.worldBoss.alive[index])return;
+  const critRoll=Math.random()*100;
+  const isCrit=critRoll<G.player.crit;
+  let dmg=Math.floor(G.player.atk*G.player.spd*10*(isCrit?2.5:1));
+  G.worldBoss.hps[index]-=dmg;
+  if(G.worldBoss.hps[index]<=0){
+    G.worldBoss.hps[index]=0;
+    G.worldBoss.alive[index]=false;
+    G.totalKills++;
+    G.stageKills++;
+    document.getElementById('stat-kills').textContent=G.totalKills;
+    updateMapProgress();
+    // Reward
+    for(let k=0;k<3;k++){
+      if(G.inventory.length<MAX_INV){
+        const eq=genEquip(G.currentStage+10,'orange');
+        G.inventory.push(eq);
+        G.totalDrops++;
+      }
+    }
+    G.fragments+=2;
+    G.totalFragments+=2;
+    document.getElementById('stat-drops').textContent=G.totalDrops;
+    document.getElementById('stat-frags').textContent=G.totalFragments;
+    showToast('击败了世界BOSS！获得3件传说装备和2个碎片！','#a855f7');
+    const allDead=G.worldBoss.alive.every(a=>!a);
+    if(allDead){
+      G.worldBoss.active=false;
+      document.getElementById('wb-panel').style.display='none';
+    }
+  }
+  updateWorldBossUI();
+  const x=200+index*300+Math.random()*100;
+  showDamageNumber(dmg,isCrit,{clientX:x,clientY:200},true);
+}
+
+// ═══════════════════════════════════════════
+// 装备系统
+// ═══════════════════════════════════════════
+function equipItem(eq){
+  const slot=eq.slot;
+  // Unequip current
+  if(G.equipped[slot]){
+    G.inventory.push(G.equipped[slot]);
+  }
+  G.equipped[slot]=eq;
+  // Remove from inv
+  const idx=G.inventory.findIndex(e=>e.id===eq.id);
+  if(idx>=0)G.inventory.splice(idx,1);
+  refreshEquipBar();
+  refreshStats();
+  document.getElementById('inv-count').textContent=G.inventory.length;
+  const qc=getQualityColor(eq.quality);
+  showToast('已穿戴 '+getQualityName(eq.quality)+' '+eq.name,qc);
+}
+function unequipSlot(slot){
+  if(!G.equipped[slot])return;
+  if(G.inventory.length>=MAX_INV){
+    showToast('背包已满！','#ef4444');return;
+  }
+  G.inventory.push(G.equipped[slot]);
+  delete G.equipped[slot];
+  refreshEquipBar();
+  refreshStats();
+  document.getElementById('inv-count').textContent=G.inventory.length;
+}
+function refreshEquipBar(){
+  for(const slot of SLOTS){
+    const el=document.querySelector('.equip-slot[data-slot="'+slot+'"]');
+    if(!el)continue;
+    const eq=G.equipped[slot];
+    if(eq){
+      el.innerHTML='<div class="slot-icon">'+eq.emoji+'</div><div class="slot-label" style="color:'+getQualityColor(eq.quality)+'">'+eq.name.substring(0,3)+'</div>';
+      el.style.color=getQualityColor(eq.quality);
+      el.classList.add('filled');
+    }else{
+      el.innerHTML='<div class="slot-icon">'+SLOT_ICONS[slot]+'</div><div class="slot-label">'+SLOT_NAMES[slot]+'</div>';
+      el.style.color='';
+      el.classList.remove('filled');
     }
   }
 }
-
-function renderActiveSet() {
-  const el  = document.getElementById('active-set');
-  const names = Object.keys(G.setBonusActivated);
-  if (names.length) {
-    el.textContent = ' ?' + names.join(' · ');
-  } else {
-    el.textContent = '';
+function onEquipSlotClick(slot){
+  if(G.equipped[slot]){
+    // Show equip detail
+    showEqDetail(G.equipped[slot]);
+  }else{
+    // Auto recommend best
+    recommendEquip(slot);
   }
 }
-
-// ─────────────────────────────────────────────────────
-// 20. 键盘支持（空格键攻击 ?// ─────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.repeat) return;
-  if (e.code === 'Space' || e.key === ' ') {
-    e.preventDefault();
-    handleClick({ clientX: 380 + Math.random() * 300, clientY: 280 + Math.random() * 120 });
+function recommendEquip(slot){
+  const candidates=G.inventory.filter(e=>e.slot===slot);
+  if(candidates.length===0){
+    showToast('背包中没有该部位的装备','#a89070');return;
   }
+  candidates.sort((a,b)=>{
+    const qi=QUALITY_KEYS.indexOf(b.quality)-QUALITY_KEYS.indexOf(a.quality);
+    if(qi!==0)return qi;
+    return(b.atk||0)+(b.crit||0)*2-( (a.atk||0)+(a.crit||0)*2);
+  });
+  showEqDetail(candidates[0]);
+}
+function showEqDetail(eq){
+  invSlot=eq.id;
+  const qc=getQualityColor(eq.quality);
+  let statsHtml='<div class="eq-stats">';
+  for(const s of equipStats(eq)){
+    const label=STAT_NAMES[s.k]||s.k;
+    const sign=s.k==='spd'?'+':'+';
+    statsHtml+=`<div class="eq-stat"><span>${label}</span><span style="color:${qc}">${sign}${s.v}${s.k==='crit'?'%':s.k==='spd'?'x':''}</span></div>`;
+  }
+  if(eq.set){
+    const setInfo=SET_BONUSES[eq.set];
+    statsHtml+=`<div class="eq-stat"><span>套装</span><span style="color:#a855f7">${setInfo?setInfo.name:'?'}</span></div>`;
+  }
+  statsHtml+='</div>';
+  let setBonusHtml='';
+  if(eq.set){
+    const sb=SET_BONUSES[eq.set];
+    if(sb){
+      setBonusHtml='<div class="eq-sets">套装: '+sb.name+' (${Object.keys(sb.pieces).length}件)<br>';
+      for(const b of Object.keys(sb.bonus)){
+        setBonusHtml+=STAT_NAMES[b]+': +${sb.bonus[b]}${b==="crit"?"%":b==="spd"?"x":""} ';
+      }
+      setBonusHtml+='</div>';
+    }
+  }
+  const isEquipped=Object.values(G.equipped).some(e=>e&&e.id===eq.id);
+  document.getElementById('modal-content').innerHTML=`
+    <div id="eq-detail">
+      <div class="eq-icon" style="color:${qc}">${eq.emoji}</div>
+      <div class="eq-name" style="color:${qc}">${eq.name}</div>
+      <div style="font-size:12px;color:#a89070">${getQualityName(eq.quality)} · Lv.${eq.level} · ${SLOT_NAMES[eq.slot]}</div>
+      ${statsHtml}
+      ${setBonusHtml}
+      <div id="eq-actions">
+        ${isEquipped?
+          '<button id="btn-equip" onclick="unequipFromDetail()">卸下</button>':
+          '<button id="btn-equip" onclick="equipFromDetail()">穿戴</button>'}
+        <button id="btn-disasm" onclick="disasmFromDetail()">分解</button>
+        <button id="btn-disasm" onclick="closeModal()">关闭</button>
+      </div>
+    </div>
+  `;
+  openModal();
+}
+function equipFromDetail(){
+  const eq=G.inventory.find(e=>e.id===invSlot);
+  if(eq)equipItem(eq);
+  closeModal();
+}
+function unequipFromDetail(){
+  const slot=G.inventory.find(e=>e.id===invSlot)?.slot;
+  if(slot)unequipSlot(slot);
+  closeModal();
+}
+function disasmFromDetail(){
+  const idx=G.inventory.findIndex(e=>e.id===invSlot);
+  if(idx>=0){
+    G.inventory.splice(idx,1);
+    G.totalDisasm++;
+    document.getElementById('stat-disasm').textContent=G.totalDisasm;
+    showToast('装备已分解','#a89070');
+  }
+  closeModal();
+  document.getElementById('inv-count').textContent=G.inventory.length;
+}
+function disasmAll(){
+  if(G.inventory.length===0){showToast('背包是空的','#a89070');return;}
+  const count=G.inventory.length;
+  G.totalDisasm+=count;
+  G.inventory=[];
+  document.getElementById('stat-disasm').textContent=G.totalDisasm;
+  document.getElementById('inv-count').textContent=0;
+  refreshEquipBar();
+  refreshStats();
+  showToast('已分解 '+count+' 件装备','#a89070');
+}
+
+// ═══════════════════════════════════════════
+// 背包系统
+// ═══════════════════════════════════════════
+function showInvModal(){
+  renderInvPage();
+  openModal();
+}
+function renderInvPage(){
+  let items=[...G.inventory];
+  if(invSort==='quality')items.sort((a,b)=>QUALITY_KEYS.indexOf(b.quality)-QUALITY_KEYS.indexOf(a.quality));
+  else if(invSort==='level')items.sort((a,b)=>b.level-a.level);
+  else if(invSort==='slot')items.sort((a,b)=>SLOTS.indexOf(a.slot)-SLOTS.indexOf(b.slot));
+  const totalPages=Math.max(1,Math.ceil(items.length/PAGE_SIZE));
+  invPage=clamp(invPage,0,totalPages-1);
+  const pageItems=items.slice(invPage*PAGE_SIZE,(invPage+1)*PAGE_SIZE);
+  let gridHtml='<div class="inv-grid">';
+  for(let i=0;i<PAGE_SIZE;i++){
+    const eq=pageItems[i];
+    if(eq){
+      const qc=getQualityColor(eq.quality);
+      gridHtml+=`<div class="inv-slot" onclick="showEqDetail(G.inventory.find(x=>x.id===${eq.id}))" style="border-color:${qc}">
+        <span>${eq.emoji}</span>
+        <span class="eq-quality" style="color:${qc}">${eq.name.charAt(0)}</span>
+      </div>`;
+    }else{
+      gridHtml+='<div class="inv-slot" style="opacity:0.3"></div>';
+    }
+  }
+  gridHtml+='</div>';
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">背包 (${G.inventory.length}/${MAX_INV})</div>
+    <div class="inv-sort">
+      <button onclick="setSort('quality')" ${invSort==='quality'?'style="background:#5a3f20"':''}>品质</button>
+      <button onclick="setSort('level')" ${invSort==='level'?'style="background:#5a3f20"':''}>等级</button>
+      <button onclick="setSort('slot')" ${invSort==='slot'?'style="background:#5a3f20"':''}>部位</button>
+    </div>
+    ${gridHtml}
+    <div class="inv-page">
+      <button onclick="prevInvPage()">上一页</button>
+      <span style="font-size:12px">${invPage+1}/${totalPages}</span>
+      <button onclick="nextInvPage()">下一页</button>
+    </div>
+  `;
+}
+function setSort(s){invSort=s;invPage=0;renderInvPage()}
+function prevInvPage(){invPage--;renderInvPage()}
+function nextInvPage(){invPage++;renderInvPage()}
+
+// ═══════════════════════════════════════════
+// 换肤系统
+// ═══════════════════════════════════════════
+function showSkinsModal(){
+  const skinData=SKINS.map(s=>{
+    const owned=G.skins[s.id]||false;
+    const frags=G.fragments;
+    const locked=!owned&&frags<FRAG_UNLOCK;
+    const active=G.activeSkin===s.id;
+    return{...s,owned,locked,active};
+  });
+  let html='<div class="modal-title">角色换肤</div>';
+  html+='<div style="font-size:12px;color:#a89070;margin-bottom:8px">碎片: '+G.fragments+'/'+FRAG_UNLOCK+' (需'+FRAG_UNLOCK+'解锁) | 当前: '+SKINS.find(s=>s.id===G.activeSkin)?.name+'</div>';
+  html+='<div id="skins-grid">';
+  for(const s of skinData){
+    const cls=[];
+    if(s.owned)cls.push('owned');
+    if(s.active)cls.push('active');
+    if(s.locked)cls.push('locked');
+    html+=`<div class="skin-card ${cls.join(' ')}" onclick="onSkinClick('${s.id}')">
+      <div class="skin-icon">${s.icon}</div>
+      <div class="skin-name">${s.name}</div>
+      <div class="skin-frags">${s.owned?'已拥有':'碎片 '+G.fragments+'/'+FRAG_UNLOCK}</div>
+      ${s.locked?'<div class="skin-lock">🔒 '+FRAG_UNLOCK+'碎片解锁</div>':''}
+      ${s.active?'<div style="color:var(--accent);font-size:10px">穿戴中</div>':''}
+    </div>`;
+  }
+  html+='</div>';
+  html+='<div style="margin-top:12px;font-size:12px;color:#a89070">职业加成: 剑士(攻击+暴击) 法师(攻击+速度) 盗贼(攻击+速度) 弓手(攻击+暴击)</div>';
+  document.getElementById('modal-content').innerHTML=html;
+  openModal();
+}
+function onSkinClick(id){
+  const owned=G.skins[id];
+  if(!owned){
+    if(G.fragments>=FRAG_UNLOCK){
+      G.fragments-=FRAG_UNLOCK;
+      G.skins[id]=true;
+      showToast('解锁了 '+SKINS.find(s=>s.id===id)?.name,'#4ade80');
+    }else{
+      showToast('碎片不足，需要 '+FRAG_UNLOCK+' 个碎片','#ef4444');
+      return;
+    }
+  }
+  G.activeSkin=id;
+  const skin=SKINS.find(s=>s.id===id);
+  if(skin){
+    document.getElementById('char-icon').textContent=skin.icon;
+    document.getElementById('char-label').textContent=skin.name;
+    // Update base stats by class
+    const clsStats={
+      warrior:{atk:12,crit:6,spd:1},
+      mage:{atk:8,crit:3,spd:1.2},
+      rogue:{atk:10,crit:5,spd:1.15},
+      archer:{atk:11,crit:8,spd:1}
+    };
+    const cs=clsStats[skin.cls]||clsStats.warrior;
+    G.player.baseAtk=cs.atk;
+    G.player.baseCrit=cs.crit;
+    G.player.baseSpd=cs.spd;
+    refreshStats();
+    refreshEquipBar();
+  }
+  showSkinsModal();
+}
+
+// ═══════════════════════════════════════════
+// 统计刷新
+// ═══════════════════════════════════════════
+function refreshStats(){
+  calcSetBonus();
+  document.getElementById('char-atk').textContent=G.player.atk;
+  document.getElementById('char-crit').textContent=G.player.crit;
+  document.getElementById('stat-atk').textContent=G.player.atk;
+  document.getElementById('stat-crit').textContent=G.player.crit+'%';
+  document.getElementById('stat-spd').textContent=G.player.spd.toFixed(2)+'x';
+  const sets=calcSetBonus();
+  document.getElementById('stat-set').textContent=sets.length>0?sets.map(s=>s.name).join(', '):'无';
+  document.getElementById('inv-count').textContent=G.inventory.length;
+}
+
+// ═══════════════════════════════════════════
+// 弹窗
+// ═══════════════════════════════════════════
+function openModal(){
+  document.getElementById('modal-overlay').classList.add('active');
+}
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal-overlay'))return;
+  document.getElementById('modal-overlay').classList.remove('active');
+}
+function showToast(msg,color){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.color=color||'var(--text)';
+  t.style.display='block';
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.style.display='none',2500);
+}
+
+// ═══════════════════════════════════════════
+// 怪物图鉴
+// ═══════════════════════════════════════════
+function showBestiary(){
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-title">怪物图鉴</div>
+    <div style="font-size:13px;line-height:1.8">
+      <div style="display:flex;gap:8px;align-items:center;margin:4px 0">
+        <span style="font-size:28px">${EMOJI_NORMAL}</span>
+        <div><b style="color:${getQualityColor('green')}">普通怪物</b><br><span style="color:#a89070">HPx1，每关出现，基础掉落</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin:4px 0">
+        <span style="font-size:28px">${EMOJI_ELITE}</span>
+        <div><b style="color:${getQualityColor('blue')}">精英怪物</b><br><span style="color:#a89070">HPx6，每7只概率出现，更高掉率</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin:4px 0">
+        <span style="font-size:28px">${EMOJI_BOSS}</span>
+        <div><b style="color:${getQualityColor('orange')}">关卡BOSS</b><br><span style="color:#a89070">HPx25，每关终点出现，必掉紫装以上</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin:4px 0">
+        <span style="font-size:28px">${EMOJI_WB}</span>
+        <div><b style="color:${getQualityColor('purple')}">世界BOSS</b><br><span style="color:#a89070">北京时间08:00/20:00各刷新2只，超高血量，击杀必得传说装</span></div>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:#a89070">
+        <b>装备品质:</b><br>
+        绿色=优秀 蓝色=精良 紫色=史诗<br>
+        橙色=传说 红色=神话<br><br>
+        <b>套装系统:</b> 集齐指定部位触发套装加成<br>
+        战士之力/法师奥术/盗贼敏捷/猎人精准/巨龙之怒
+      </div>
+    </div>
+  `;
+  openModal();
+}
+
+// ═══════════════════════════════════════════
+// 存档系统
+// ═══════════════════════════════════════════
+function saveGame(){
+  const saveData={
+    player:G.player,
+    currentStage:G.currentStage,
+    stageKills:G.stageKills,
+    totalKills:G.totalKills,
+    stageClears:G.stageClears,
+    inventory:G.inventory,
+    equipped:G.equipped,
+    skins:G.skins,
+    activeSkin:G.activeSkin,
+    fragments:G.fragments,
+    totalFragments:G.totalFragments,
+    totalDrops:G.totalDrops,
+    totalDisasm:G.totalDisasm,
+    worldBoss:G.worldBoss,
+    version:1
+  };
+  try{
+    localStorage.setItem('mazeHunterSave',JSON.stringify(saveData));
+    showToast('游戏已保存','#4ade80');
+  }catch(e){
+    showToast('保存失败: '+e.message,'#ef4444');
+  }
+}
+function loadGame(){
+  try{
+    const raw=localStorage.getItem('mazeHunterSave');
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    if(data.version!==1)return false;
+    G.player=data.player||G.player;
+    G.currentStage=data.currentStage||1;
+    G.stageKills=data.stageKills||0;
+    G.totalKills=data.totalKills||0;
+    G.stageClears=data.stageClears||0;
+    G.inventory=data.inventory||[];
+    G.equipped=data.equipped||{};
+    G.skins=data.skins||{};
+    G.activeSkin=data.activeSkin||'dog-warrior';
+    G.fragments=data.fragments||0;
+    G.totalFragments=data.totalFragments||0;
+    G.totalDrops=data.totalDrops||0;
+    G.totalDisasm=data.totalDisasm||0;
+    G.worldBoss=data.worldBoss||{active:false,hps:[0,0],maxHps:[0,0],alive:[false,false],cooldown:0};
+    return true;
+  }catch(e){return false;}
+}
+function resetGame(){
+  if(!confirm('确定要重置所有进度吗？'))return;
+  localStorage.removeItem('mazeHunterSave');
+  location.reload();
+}
+function startAutoSave(){
+  autoSaveTimer=setInterval(()=>{
+    const saveData={
+      player:G.player,currentStage:G.currentStage,stageKills:G.stageKills,
+      totalKills:G.totalKills,stageClears:G.stageClears,
+      inventory:G.inventory,equipped:G.equipped,skins:G.skins,
+      activeSkin:G.activeSkin,fragments:G.fragments,
+      totalFragments:G.totalFragments,totalDrops:G.totalDrops,
+      totalDisasm:G.totalDisasm,worldBoss:G.worldBoss,version:1
+    };
+    try{localStorage.setItem('mazeHunterSave',JSON.stringify(saveData));}catch(e){}
+  },30000);
+}
+
+// ═══════════════════════════════════════════
+// 键盘支持
+// ═══════════════════════════════════════════
+document.addEventListener('keydown',(e)=>{
+  if(e.repeat)return;
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  handleClick({clientX:300+Math.random()*400,clientY:250+Math.random()*200});
 });
 
-// ─────────────────────────────────────────────────────
-// 21. 世界BOSS定时 ?// ─────────────────────────────────────────────────────
-let lastWBHour = -1;
-
-function checkWorldBossSpawn() {
-  const now  = new Date();
-  const h    = now.getHours();
-  const m    = now.getMinutes();
-  // 北京时间 08:00  ?20:00（北京时 ?= 本地时区 + 时差 ?  // 简单判断本地时间的小时（假设用户在中国时区 ?  const isTargetHour = (h === 8 || h === 20) && m < 1;
-  if (isTargetHour && h !== lastWBHour) {
-    lastWBHour = h;
-    spawnWorldBosses();
+// ═══════════════════════════════════════════
+// 初始化
+// ═══════════════════════════════════════════
+(function init(){
+  const loaded=loadGame();
+  if(loaded){
+    // Apply skin
+    const skin=SKINS.find(s=>s.id===G.activeSkin);
+    if(skin){
+      document.getElementById('char-icon').textContent=skin.icon;
+      document.getElementById('char-label').textContent=skin.name;
+    }
+    if(G.worldBoss.active){
+      document.getElementById('wb-panel').style.display='block';
+      updateWorldBossUI();
+    }
   }
-}
-
-// ─────────────────────────────────────────────────────
-// 22. 游戏主循 ?// ─────────────────────────────────────────────────────
-function gameLoop() {
-  if (!G) return;
-  updateWBTimer();
-  checkWorldBossSpawn();
-}
-setInterval(gameLoop, 1000);
-
-// ─────────────────────────────────────────────────────
-// 23. 初始 ?// ─────────────────────────────────────────────────────
-function init() {
-  // 尝试加载存档，否则新 ?  const loaded = loadGame();
-  if (!loaded) {
-    G = initState();
+  // Stats from skin
+  const skin=SKINS.find(s=>s.id===G.activeSkin);
+  if(skin){
+    const clsStats={warrior:{atk:12,crit:6,spd:1},mage:{atk:8,crit:3,spd:1.2},rogue:{atk:10,crit:5,spd:1.15},archer:{atk:11,crit:8,spd:1}};
+    const cs=clsStats[skin.cls]||clsStats.warrior;
+    G.player.baseAtk=G.player.baseAtk||cs.atk;
+    G.player.baseCrit=G.player.baseCrit||cs.crit;
+    G.player.baseSpd=G.player.baseSpd||cs.spd;
   }
-
-  initMapPath();
-  updateMapPath();
-  updateAllUI();
-  decideAndSpawn();
-
-  // 自动存档（每30秒）
-  setInterval(saveGame, 30000);
-
-  // 关闭页面前存 ?  window.addEventListener('beforeunload', () => saveGame());
-
-  showToast('🎮 迷宫猎手 · 加载完成 ?, '#f97c4a');
-}
-
-init();
+  refreshStats();
+  refreshEquipBar();
+  updateMapProgress();
+  document.getElementById('stat-kills').textContent=G.totalKills;
+  document.getElementById('stat-clears').textContent=G.stageClears;
+  document.getElementById('stat-drops').textContent=G.totalDrops;
+  document.getElementById('stat-frags').textContent=G.totalFragments;
+  document.getElementById('stat-disasm').textContent=G.totalDisasm;
+  document.getElementById('inv-count').textContent=G.inventory.length;
+  document.getElementById('stage-num').textContent=G.currentStage;
+  spawnMonster();
+  updateMonsterUI();
+  setInterval(updateWBCountdown,1000);
+  updateWBCountdown();
+  // Check if world boss should be active
+  const[nextA,nextB]=getNextWBTimes();
+  const now=Date.now();
+  if(now>=nextA-300000||now>=nextB-300000){
+    activateWorldBoss();
+  }
+  startAutoSave();
+  if(!loaded)showToast('欢迎来到迷宫猎手！点击开始冒险！','#f97c4a');
+})();
 </script>
 </body>
 </html>
