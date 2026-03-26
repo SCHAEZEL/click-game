@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.clickers.maomao",
   "build": {
-    "frontendDist": "../frontend"
+    "frontendDist": "../.."
   },
   "app": {
     "windows": [

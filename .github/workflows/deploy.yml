@@ -20,7 +20,7 @@ jobs:
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: frontend/
+          path: ./
 
   # ── Tauri 桌面构建 ──
   build-tauri:
@@ -50,3 +50,5 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          repoPath: ./desktop
